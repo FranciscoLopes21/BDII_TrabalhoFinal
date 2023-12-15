@@ -98,8 +98,15 @@
     </style>
 
 <div class="navbar">
-    <a href="{% url 'room' %}">Room</a>
-        <i class="fa-solid fa-user"></i>
-        Bem-vindo Comercial
-    </a>
+    
+        <a href="#">Loja</a>
+       
+        <a href="{% url 'home' %}"><i class="fa-solid fa-list"></i> home</a>
+         <a href="{% url 'room' %}">
+            <i class="fa-solid fa-cart-shopping" color="white"></i>
+            Room
+        </a>
+        <a href="{% url 'registar' %}">
+            <i class="fa-solid fa-right-to-bracket"></i> Entrar</a>
+        </a>
 </div>

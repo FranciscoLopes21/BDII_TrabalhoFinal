@@ -1,1 +1,49 @@
-<h1>Home Template</h1>
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/8b1d1b66fd.js" crossorigin="anonymous"></script>
+    <title>Loja</title>
+
+    
+</head>
+<body>
+
+{% extends 'main.html' %}
+
+
+{% block content %}
+
+<div class="box">
+        
+    <br>
+    <h2>Encomendas por Validar</h2>
+    <br>
+
+    <table>
+        <tr>
+           <th>ID Encomenda</th> 
+           <th>Utilizador</th> 
+           <th>Data</th> 
+           <th>Preço</th> 
+           <th>Ações</th> 
+        </tr>
+        <tr>
+            <td>dfg</td>
+            <td>dfg</td>
+            <td>dfg</td>
+            <td>sfdf</td>
+            <td>
+                <a href=""><input class="button" type="submit" value="Validar"/></a>
+                <a href=""><input class="button-outline" type="submit" value="Cancelar"/></a>
+            </td>
+        </tr> 
+    </table>
+    <h2 class="text">Não existem encomendas por validar</h2>
+    
+</div>
+
+{% endblock content %}
+
+</body>
+</html>
