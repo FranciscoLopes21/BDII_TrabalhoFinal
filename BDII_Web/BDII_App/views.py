@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
-from .forms import formularioRegisto
+from .forms import formularioRegisto, formualarioRegistoEquipamentos
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -19,4 +19,9 @@ def room(request):
 def registarUtilizador(request):
     form = formularioRegisto()
     return render(request, 'Registar.html', {'form': form})   
+
+# regista um novo utilizador
+def RegistarEquipamentos(request):
+    form = formualarioRegistoEquipamentos()
+    return render(request, 'RegistarEquipamentos.html', {'form': form})   
 
