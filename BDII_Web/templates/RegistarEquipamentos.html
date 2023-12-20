@@ -137,8 +137,16 @@
             {{ form.nome }}
         </div>
         <div class="form-group">
-            {{ form.tipo.label_tag }}
-            {{ form.tipo }}
+            {{ form.referencia.label_tag }}
+            {{ form.referencia }}
+        </div>
+        <div class="form-group">
+            {{ form.componentes.label_tag }}
+            {{ form.componentes }}
+        </div>
+        <div class="form-group">
+            {{ form.maoObra.label_tag }}
+            {{ form.maoObra }}
         </div>
         <div class="form-group">
             {{ form.quantidade.label_tag }}
@@ -147,14 +155,6 @@
         <div class="form-group">
             {{ form.preco.label_tag }}
             {{ form.preco }}
-        </div>
-        <div class="form-group">
-            {{ form.preço.label_tag }}
-            {{ form.preço }}
-        </div>
-        <div class="form-group">
-            {{ form.desconto.label_tag }}
-            {{ form.desconto }}
         </div>
         <br>
         <input class="submit-btn" type="submit" value="Registar"/>

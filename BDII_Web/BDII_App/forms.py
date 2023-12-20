@@ -14,7 +14,8 @@ class formularioRegisto(forms.Form):
 
 class formualarioRegistoEquipamentos(forms.Form):
     nome = forms.CharField(max_length=100, required=False)
-    tipo = forms.ChoiceField( required=False)#choices=tiposProdutos,
+    referencia = forms.CharField(max_length=100, required=False)
+    componentes = forms.ChoiceField( required=False)#choices=tiposProdutos,
+    maoObra = forms.ChoiceField( required=False)#choices=tiposProdutos,
     quantidade = forms.IntegerField(required=False)
-    preço = forms.FloatField(required=False)
-    desconto = forms.FloatField(required=False)
+    preco = forms.FloatField(required=False)
