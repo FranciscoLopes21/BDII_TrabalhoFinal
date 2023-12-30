@@ -19,3 +19,8 @@ class formualarioRegistoEquipamentos(forms.Form):
     maoObra = forms.ChoiceField( required=False)#choices=tiposProdutos,
     quantidade = forms.IntegerField(required=False)
     preco = forms.FloatField(required=False)
+
+
+class formularioLogin(forms.Form):
+    email = forms.EmailField(required=False)
+    password = forms.CharField(widget=forms.PasswordInput(), max_length=160, required=False)
