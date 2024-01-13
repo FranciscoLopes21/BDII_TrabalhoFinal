@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db import connection
-from .forms import formularioRegisto, formualarioRegistoEquipamentos, formularioLogin
+from .forms import formularioRegisto, formualarioRegistoEquipamentos, formularioLogin, formularioAdiconarFornecedor
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import login, authenticate
@@ -27,6 +27,7 @@ def loginClient(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
+        id = 0
 
         # Verificar se o usuário existe na tabela 'users' com SQL direto
         with connection.cursor() as cursor:
@@ -51,6 +52,7 @@ def loginClient(request):
                 # Armazenar informações do usuário na sessão
                 request.session['user_id'] = user.id
                 request.session['user_email'] = user.email
+                request.session['tipo_user'] = user_data[7]
 
                 return redirect('room')
         else:
@@ -120,3 +122,17 @@ def RegistarEquipamentos(request):
     form = formualarioRegistoEquipamentos()
     return render(request, 'RegistarEquipamentos.html', {'form': form})   
 
+
+
+# adicionar fornecedor 
+@login_required(login_url='/login/') 
+def adicionarFornecedor(request):
+    # Verificar se o usuário é do tipo "admin" usando a informação armazenada na sessão
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    form = formularioAdiconarFornecedor()
+    return render(request, 'AdicionarFornecedor.html', {'form': form})

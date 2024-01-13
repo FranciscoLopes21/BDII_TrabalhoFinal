@@ -24,3 +24,10 @@ class formualarioRegistoEquipamentos(forms.Form):
 class formularioLogin(forms.Form):
     email = forms.EmailField(required=False)
     password = forms.CharField(widget=forms.PasswordInput(), max_length=160, required=False)
+
+
+class formularioAdiconarFornecedor(forms.Form):
+    nome = forms.CharField(max_length=100, required=False)
+    contacto = forms.CharField(max_length=100, widget=NumberInput(attrs={'type': 'number'}), required=False)
+    morada = forms.CharField(max_length=100, required=False)
+    email = forms.EmailField(required=False)
