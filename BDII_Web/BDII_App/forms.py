@@ -28,6 +28,15 @@ class formularioLogin(forms.Form):
 
 class formularioAdiconarFornecedor(forms.Form):
     nome = forms.CharField(max_length=100, required=False)
-    contacto = forms.CharField(max_length=100, widget=NumberInput(attrs={'type': 'number'}), required=False)
+    contacto = forms.CharField(
+        max_length=9,
+        min_length=9,
+        widget=forms.NumberInput(attrs={'type': 'number'}),
+        required=False,
+        error_messages={
+            'max_length': 'O contato deve ter no máximo 9 dígitos.',
+            'invalid': 'Por favor, insira um número válido.',
+        }
+    )
     morada = forms.CharField(max_length=100, required=False)
     email = forms.EmailField(required=False)

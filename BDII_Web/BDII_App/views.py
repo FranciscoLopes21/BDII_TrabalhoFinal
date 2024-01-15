@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import logout
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 
@@ -122,6 +123,22 @@ def RegistarEquipamentos(request):
     form = formualarioRegistoEquipamentos()
     return render(request, 'RegistarEquipamentos.html', {'form': form})   
 
+#Mostrar Fornecedores
+@login_required(login_url='/login/') 
+def listarFornecedores(request):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Consulta ao banco de dados para obter todos os fornecedores
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM Fornecedores")
+        fornecedores = cursor.fetchall()
+
+    # Passar os dados para o template
+    return render(request, 'listaFornecedores.html', {'fornecedores': fornecedores})
 
 
 # adicionar fornecedor 
@@ -133,6 +150,33 @@ def adicionarFornecedor(request):
     if tipo_user != 'admin':
         # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
         return redirect('login')
+    elif  tipo_user == 'admin':
+        if request.method == 'POST':
+            form = formularioAdiconarFornecedor(request.POST)
+            if form.is_valid():
+                nome = form.cleaned_data["nome"]
+                morada = form.cleaned_data["morada"]
+                contacto = form.cleaned_data["contacto"]
+                email = form.cleaned_data["email"]
 
-    form = formularioAdiconarFornecedor()
+                if contacto and not contacto.isdigit() and len(contacto) != 9:
+                    raise ValidationError('O contato deve ter exatamente 9 dígitos.')
+                
+                else:
+
+                    # Continuação do seu código para inserir o usuário na tabela 'users'
+                    with connection.cursor() as cursor:
+                        # Exemplo de inserção
+                        cursor.execute(
+                            "INSERT INTO Fornecedores (nome, morada, contacto, email) VALUES (%s, %s, %s, %s)",
+                            [nome, morada, contacto,email]
+                        )
+
+                    messages.success(request, 'Fornecedor adicionado com sucesso.')
+                    # Redirecionar para a página inicial room
+                    return redirect('room')
+
+        else:
+            form = formularioAdiconarFornecedor()
+
     return render(request, 'AdicionarFornecedor.html', {'form': form})

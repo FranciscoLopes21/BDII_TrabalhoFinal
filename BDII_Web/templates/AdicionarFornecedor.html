@@ -120,12 +120,25 @@
 
 <div class="container">
 
-        {% if messages %}
+    {% if messages %}
         <div class="messages">
             {% for message in messages %}
             {{ message }}
             {% endfor %}
         </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="error">
+        <strong>Ocorreu um erro no formulário:</strong>
+        <ul>
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <li>{{ field }}: {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
     {% endif %}
 
     <h3>Adicionar Fornecedores</h3>
