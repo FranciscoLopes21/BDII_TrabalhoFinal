@@ -180,3 +180,20 @@ def adicionarFornecedor(request):
             form = formularioAdiconarFornecedor()
 
     return render(request, 'AdicionarFornecedor.html', {'form': form})
+
+
+#Mostrar Fornecedores
+@login_required(login_url='/login/') 
+def eleminarFornecedores(request, forn):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Consulta ao banco de dados para obter todos os fornecedores
+    with connection.cursor() as cursor:
+        cursor.execute("DELETE FROM Fornecedores WHERE fornecedor_id = %s", [forn])
+
+    # Passar os dados para o template
+    return redirect('listarFornecedor')
