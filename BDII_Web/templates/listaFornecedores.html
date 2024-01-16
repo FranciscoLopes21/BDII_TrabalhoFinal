@@ -23,18 +23,34 @@
             {{ message }}
             {% endfor %}
         </div>
-    {% endif %}
+        {% endif %}
+
+        
+
+
+
     <div class="action">
-    <h2>Todos os Fornecedores</h2>
-    <a href="{% url 'adicionarFornecedor' %}">
-        <input class="button" type="submit" value="Adicionar Fornecedor" />
-    </a>
-</div>
-    <br>
+        <h2>Todos os Fornecedores</h2>
+        <br>
+        <a href="{% url 'adicionarFornecedor' %}" style="float: right;">
+            <input class="button" type="submit" value="Adicionar Fornecedor" />
+        </a>
 
+        <div class="filter-form">
+            <form method="GET" action="{% url 'listarFornecedor' %}">
+                <label for="nome">Filtrar por Nome:</label>
+                <input type="text" class="form-control" name="nome" id="nome" value="{{ request.GET.nome }}">
+                <input class="button" type="submit" value="Filtrar" />
+            </form>
+        </div>
+
+    </div>
+    <!-- Adicione este trecho de código no início do bloco "content" -->
     
+    <!-- Fim do trecho adicionado -->
 
 
+    <br>
     <table>
         <tr>
             <th>Id</th> 

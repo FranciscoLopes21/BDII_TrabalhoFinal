@@ -132,13 +132,19 @@ def listarFornecedores(request):
         # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
         return redirect('login')
 
-    # Consulta ao banco de dados para obter todos os fornecedores
+    nome_filter = request.GET.get('nome', '')  # Obtém o valor do filtro de nome
+
+    # Consulta ao banco de dados para obter fornecedores com base no filtro de nome
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM Fornecedores")
+        if nome_filter:
+            cursor.execute("SELECT * FROM Fornecedores WHERE nome LIKE %s", ['%' + nome_filter + '%'])
+        else:
+            cursor.execute("SELECT * FROM Fornecedores")
+
         fornecedores = cursor.fetchall()
 
     # Passar os dados para o template
-    return render(request, 'listaFornecedores.html', {'fornecedores': fornecedores})
+    return render(request, 'listaFornecedores.html', {'fornecedores': fornecedores, 'nome_filter': nome_filter})
 
 
 # adicionar fornecedor 
