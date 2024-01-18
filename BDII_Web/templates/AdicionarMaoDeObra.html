@@ -151,7 +151,7 @@
     </div>
     {% endif %}
 
-    <h3>Adicionar Fornecedores</h3>
+    <h3>Adicionar Mão de Obra</h3>
     <form action="" method="POST">
         {% csrf_token %}
         <div class="form-group">
@@ -159,16 +159,8 @@
             {{ form.nome }}
         </div>
         <div class="form-group">
-            {{ form.contacto.label_tag }}
-            {{ form.contacto }}
-        </div>
-        <div class="form-group">
-            {{ form.morada.label_tag }}
-            {{ form.morada }}
-        </div>
-        <div class="form-group">
-            {{ form.email.label_tag }}
-            {{ form.email }}
+            {{ form.preco.label_tag }}
+            {{ form.preco }}
         </div>
         <br>
         <input class="submit-btn" type="submit" value="Registar"/>

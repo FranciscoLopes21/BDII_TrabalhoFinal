@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db import connection
-from .forms import formularioRegisto, formualarioRegistoEquipamentos, formularioLogin, formularioAdiconarFornecedor
+from .forms import formularioRegisto, formualarioRegistoEquipamentos, formularioLogin, formularioAdiconarFornecedor, formularioAdiconarMaoObra
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import login, authenticate
@@ -78,6 +78,21 @@ def room(request):
 
     # Restante da lógica da sua view
     return render(request, 'room.html', {'user': user})
+
+@login_required(login_url='/login/') 
+def dashBoardAdmin(request):
+    # Verificar se o usuário é do tipo "admin" usando a informação armazenada na sessão
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+    elif  tipo_user == 'admin': 
+        print("User ID:")
+        print("Is Authenticated:")
+
+    # Restante da lógica da sua view
+    return render(request, 'dashboardAdmin.html')
 
 # regista um novo utilizador
 def registarUtilizador(request):
@@ -203,3 +218,73 @@ def eleminarFornecedores(request, forn):
 
     # Passar os dados para o template
     return redirect('listarFornecedor')
+
+
+#Mostrar Fornecedores
+@login_required(login_url='/login/') 
+def listarMaoDeObra(request):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    nome_filter = request.GET.get('nome', '')
+    order_by = request.GET.get('order_by', '')  # Novo parâmetro para ordenação
+
+    # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
+    with connection.cursor() as cursor:
+        if nome_filter:
+            query = "SELECT * FROM maoObra WHERE nome LIKE %s"
+            params = ['%' + nome_filter + '%']
+        else:
+            query = "SELECT * FROM maoObra"
+            params = []
+
+        if order_by == 'preco_asc':
+            query += " ORDER BY preco ASC"
+        elif order_by == 'preco_desc':
+            query += " ORDER BY preco DESC"
+
+        cursor.execute(query, params)
+        maoObra = cursor.fetchall()
+        
+    # Passar os dados para o template
+    return render(request, 'listarMaoDeObra.html', {'maoObra': maoObra, 'nome_filter': nome_filter, 'order_by': order_by})
+
+
+
+
+# adicionar fornecedor 
+@login_required(login_url='/login/') 
+def adicionarMaoObra(request):
+    # Verificar se o usuário é do tipo "admin" usando a informação armazenada na sessão
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+    elif  tipo_user == 'admin':
+        if request.method == 'POST':
+            form = formularioAdiconarMaoObra(request.POST)
+            if form.is_valid():
+                nome = form.cleaned_data["nome"]
+                preco = form.cleaned_data["preco"]
+
+                # Continuação do seu código para inserir o usuário na tabela 'users'
+                with connection.cursor() as cursor:
+                    # Exemplo de inserção
+                    cursor.execute(
+                        "INSERT INTO maoObra (nome, preco) VALUES (%s, %s)",
+                        [nome, preco]
+                    )
+
+                    messages.success(request, 'Mão de obra adicionada com sucesso.')
+                    # Redirecionar para a página inicial room
+                    return redirect('room')
+
+        else:
+            form = formularioAdiconarMaoObra()
+
+    return render(request, 'AdicionarMaoDeObra.html', {'form': form})
+

@@ -40,3 +40,11 @@ class formularioAdiconarFornecedor(forms.Form):
     )
     morada = forms.CharField(max_length=100, required=False)
     email = forms.EmailField(required=False)
+
+
+class formularioAdiconarMaoObra(forms.Form):
+    nome = forms.CharField(max_length=100, required=False)
+    preco = forms.DecimalField(
+        max_digits=10,  # Define o número máximo de dígitos no preço
+        decimal_places=2,  # Define o número de casas decimais
+    )
