@@ -17,7 +17,8 @@ urlpatterns = [
     path('listarFornecedor/Delete/<str:forn>/', views.eleminarFornecedores, name='apagarFornecedor'),
     path('listarMaoDeObra/', views.listarMaoDeObra, name='listarMaoDeObra'),
     path('adicionarMaoObra/', views.adicionarMaoObra, name='adicionarMaoObra'),
-
+    path('listarComponentes/', views.listarComponentes, name='listarComponentes'),
+    path('adicionarComponentes/', views.adicionarComponentes, name='adicionarComponentes'),
 
 ]
 

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db import connection
-from .forms import formularioRegisto, formualarioRegistoEquipamentos, formularioLogin, formularioAdiconarFornecedor, formularioAdiconarMaoObra
+from .forms import formularioRegisto, formualarioRegistoEquipamentos, formularioLogin, formularioAdiconarFornecedor, formularioAdiconarMaoObra, formularioAdicionarComponentes
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import login, authenticate
@@ -287,4 +287,34 @@ def adicionarMaoObra(request):
             form = formularioAdiconarMaoObra()
 
     return render(request, 'AdicionarMaoDeObra.html', {'form': form})
+
+
+#Mostrar Fornecedores
+@login_required(login_url='/login/') 
+def listarComponentes(request):
+
+    
+
+
+    return render(request, 'listarComponentes.html')   
+
+
+#Mostrar Fornecedores
+@login_required(login_url='/login/') 
+def adicionarComponentes(request):
+
+    form = formularioAdicionarComponentes()
+
+    # Consulta ao banco de dados para obter os fornecedores
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT fornecedor_id, nome FROM fornecedores")
+        lista_fornecedores = cursor.fetchall()
+
+    # Configurar as opções do campo fornecedor
+    choices = [(f[0], f[1]) for f in lista_fornecedores]
+    form.fields['fornecedor'].choices = choices
+
+
+    return render(request, 'AdicionarComponentes.html', {'form': form})   
+
 
