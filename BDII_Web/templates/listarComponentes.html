@@ -25,15 +25,22 @@
         <i class="fa-solid fa-people-group"></i>Fornecedores
     </a>
     <a href="{% url 'listarComponentes' %}">
-        <i class="fa-solid fa-helmet-safety"></i>Componentes
+        <i class="fa-solid fa-gears"></i>Componentes
+    </a>
+    <a>
+        <i class="fa-solid fa-truck-field"></i>Encomendas
     </a>
     <a href="{% url 'listarMaoDeObra' %}">
         <i class="fa-solid fa-helmet-safety"></i>Mão de obra
+    </a>
+    <a>
+        <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
     <a href="{% url 'logout' %}">
         <i class="fa-solid fa-right-from-bracket"></i>Logout
     </a>
 </div>
+
 
 <div class="box">
         
@@ -65,6 +72,15 @@
             </form>
         </div>
 
+        <br>
+        <br>
+        <a href="{% url 'listarComponentes' %}" style="float: left;" class="mostrar-todos">
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+        <a href="{% url 'listarComponentes' %}?filtro=em_falta" style="float: left;{% if filtro == 'em_falta' %} background-color: yellow; {% endif %}">
+            <input class="button" type="submit" value="Componentes em falta" />
+        </a>
+        
     </div>
     <!-- Adicione este trecho de código no início do bloco "content" -->
     
@@ -76,20 +92,29 @@
         <tr>
             <th>Id</th> 
             <th>Nome</th> 
-            <th>Morada</th> 
-            <th>Contacto</th> 
-            <th>Email</th> 
+            <th>Referencia</th> 
+            <th>Quantidade</th> 
+            <th>Stock Minimo</th> 
+            <th>Fornecedor</th> 
+            <th>Categoria</th> 
+            <th>Preço</th> 
         </tr>
-        {% for result in fornecedores%}
+        {% for result in componentes%}
         <tr>
-            <td>xcv</td>
-            <td>xcv</td>
-            <td>xcv</td>
-            <td>xcv</td>
-            <td>xcv</td>
+            <td>{{result.0}}</td>
+            <td>{{result.1}}</td>
+            <td>{{result.2}}</td>
+            <td>{{result.3}}</td>
+            <td>{{result.4}}</td>
+            <td>{{result.5}}</td>
+            <td>{{result.6}}</td>
+            <td>{{result.7}}</td>
             <td>
                 <a ><input class="button" type="submit" value="Alterar"/></a>
                 <a ><input class="button-outline" type="submit" value="Remover"/></a>
+            </td>
+            <td>
+                <a ><input class="button-outline" type="submit" value="Encomendar"/></a>
             </td>
         </tr> 
         {% endfor %}

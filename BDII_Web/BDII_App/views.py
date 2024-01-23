@@ -195,7 +195,7 @@ def adicionarFornecedor(request):
 
                     messages.success(request, 'Fornecedor adicionado com sucesso.')
                     # Redirecionar para a página inicial room
-                    return redirect('room')
+                    return redirect('listarFornecedor')
 
         else:
             form = formularioAdiconarFornecedor()
@@ -281,7 +281,7 @@ def adicionarMaoObra(request):
 
                     messages.success(request, 'Mão de obra adicionada com sucesso.')
                     # Redirecionar para a página inicial room
-                    return redirect('room')
+                    return redirect('listarMaoDeObra')
 
         else:
             form = formularioAdiconarMaoObra()
@@ -293,26 +293,78 @@ def adicionarMaoObra(request):
 @login_required(login_url='/login/') 
 def listarComponentes(request):
 
-    
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
 
 
-    return render(request, 'listarComponentes.html')   
+    filtro = request.GET.get('filtro', None)
+
+    with connection.cursor() as cursor:
+        if filtro == 'em_falta':
+            cursor.execute("""
+                SELECT c.componentes_id, c.nome, c.referencia, c.quant, c.stockMinimo, f.nome as nome_fornecedor, c.categoria, c.preco
+                FROM componentes c
+                JOIN fornecedores f ON c.fornecedor_id = f.fornecedor_id
+                WHERE c.stockMinimo > c.quant
+            """)
+        else:
+            cursor.execute("""
+                SELECT c.componentes_id, c.nome, c.referencia, c.quant, c.stockMinimo, f.nome as nome_fornecedor, c.categoria, c.preco
+                FROM componentes c
+                JOIN fornecedores f ON c.fornecedor_id = f.fornecedor_id
+            """)
+
+        componentes = cursor.fetchall()
+
+    return render(request, 'listarComponentes.html', {'componentes': componentes})   
 
 
 #Mostrar Fornecedores
 @login_required(login_url='/login/') 
 def adicionarComponentes(request):
+    # Verificar se o usuário é do tipo "admin" usando a informação armazenada na sessão
+    tipo_user = request.session.get('tipo_user', None)
 
-    form = formularioAdicionarComponentes()
-
-    # Consulta ao banco de dados para obter os fornecedores
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+    
+        # Consulta ao banco de dados para obter os fornecedores
     with connection.cursor() as cursor:
         cursor.execute("SELECT fornecedor_id, nome FROM fornecedores")
         lista_fornecedores = cursor.fetchall()
 
     # Configurar as opções do campo fornecedor
     choices = [(f[0], f[1]) for f in lista_fornecedores]
-    form.fields['fornecedor'].choices = choices
+    if request.method == 'POST':
+        form = formularioAdicionarComponentes(request.POST)
+        form.fields['fornecedor'].choices = choices  # Atualizar as opções do fornecedor no caso de falha na validação
+        if form.is_valid():
+            nome = form.cleaned_data["nome"]
+            referencia = form.cleaned_data["referencia"]
+            quant = form.cleaned_data["quant"]
+            stockMin = form.cleaned_data["stockMin"]
+            fornecedor_id = form.cleaned_data["fornecedor"]
+            categoria = form.cleaned_data["categoria"]
+            preco = form.cleaned_data["preco"]
+
+            # Continuação do seu código para inserir o componente na tabela 'componentes'
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO componentes (nome, referencia, quant, stockMinimo, fornecedor_id, categoria, preco) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    [nome, referencia, quant, stockMin, fornecedor_id, categoria, preco]
+                )
+
+            messages.success(request, 'Componente adicionado com sucesso.')
+            # Redirecionar para a página inicial room
+            return redirect('listarComponentes')
+
+    else:
+        form = formularioAdicionarComponentes()
+        form.fields['fornecedor'].choices = choices  # Configurar as opções do fornecedor no carregamento inicial
 
 
     return render(request, 'AdicionarComponentes.html', {'form': form})   

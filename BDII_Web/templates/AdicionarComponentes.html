@@ -118,6 +118,28 @@
 
 {% block content %}
 
+<div class="navbar">
+    <a href="{% url 'dashBoardAdmin' %}">DashBoard</a>
+    <a href="{% url 'listarFornecedor' %}">
+        <i class="fa-solid fa-people-group"></i>Fornecedores
+    </a>
+    <a href="{% url 'listarComponentes' %}">
+        <i class="fa-solid fa-gears"></i>Componentes
+    </a>
+    <a>
+        <i class="fa-solid fa-truck-field"></i>Encomendas
+    </a>
+    <a href="{% url 'listarMaoDeObra' %}">
+        <i class="fa-solid fa-helmet-safety"></i>Mão de obra
+    </a>
+    <a>
+        <i class="fa-solid fa-desktop"></i>Equipamentos
+    </a>
+    <a href="{% url 'logout' %}">
+        <i class="fa-solid fa-right-from-bracket"></i>Logout
+    </a>
+</div>
+
 <div class="container">
 
         {% if messages %}
@@ -128,7 +150,7 @@
         </div>
     {% endif %}
 
-    <h3>Adicionar Equipamentos</h3>
+    <h3>Adicionar Componentes</h3>
     <form action="" method="POST">
         {% csrf_token %}
         <div class="form-group">
@@ -144,12 +166,20 @@
             {{ form.quant }}
         </div>
         <div class="form-group">
+            {{ form.stockMin.label_tag }}
+            {{ form.stockMin }}
+        </div>
+        <div class="form-group">
             {{ form.fornecedor.label_tag }}
             {{ form.fornecedor }}
         </div>
         <div class="form-group">
             {{ form.categoria.label_tag }}
             {{ form.categoria }}
+        </div>
+        <div class="form-group">
+            {{ form.preco.label_tag }}
+            {{ form.preco }}
         </div>
         <br>
         <input class="submit-btn" type="submit" value="Registar"/>

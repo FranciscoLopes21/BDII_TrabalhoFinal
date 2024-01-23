@@ -62,7 +62,24 @@ class formularioAdicionarComponentes(forms.Form):
             'max_length': 'A quantidade deve ter no máximo 5 dígitos.',
             'min_length': 'A quantidade deve ter no minimo 1 dígito.',
             'invalid': 'Por favor, insira um número válido.',
-        }
+        },
+        label='Quantidade'
+    )
+    stockMin = forms.CharField(
+        max_length=5,
+        min_length=1,
+        widget=forms.NumberInput(attrs={'type': 'number'}),
+        required=False,
+        error_messages={
+            'max_length': 'A quantidade deve ter no máximo 5 dígitos.',
+            'min_length': 'A quantidade deve ter no minimo 1 dígito.',
+            'invalid': 'Por favor, insira um número válido.',
+        },
+        label='Stock Minimo'
     )
     fornecedor = forms.ChoiceField(choices=[], required=False)#choices=fornecedor,
     categoria = forms.IntegerField(required=False)
+    preco = forms.DecimalField(
+        max_digits=10,  # Define o número máximo de dígitos no preço
+        decimal_places=2,  # Define o número de casas decimais
+    )
