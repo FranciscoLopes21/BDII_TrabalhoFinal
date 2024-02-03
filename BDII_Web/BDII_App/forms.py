@@ -12,15 +12,6 @@ class formularioRegisto(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput(), max_length=16, required=False)
 
 
-class formualarioRegistoEquipamentos(forms.Form):
-    nome = forms.CharField(max_length=100, required=False)
-    referencia = forms.CharField(max_length=100, required=False)
-    componentes = forms.ChoiceField( required=False)#choices=tiposProdutos,
-    maoObra = forms.ChoiceField( required=False)#choices=tiposProdutos,
-    quantidade = forms.IntegerField(required=False)
-    preco = forms.FloatField(required=False)
-
-
 class formularioLogin(forms.Form):
     email = forms.EmailField(required=False)
     password = forms.CharField(widget=forms.PasswordInput(), max_length=160, required=False)
@@ -83,3 +74,26 @@ class formularioAdicionarComponentes(forms.Form):
         max_digits=10,  # Define o número máximo de dígitos no preço
         decimal_places=2,  # Define o número de casas decimais
     )
+
+class formularioAdiconarEncomenda(forms.Form):
+    quantidade = forms.CharField(
+        max_length=5,
+        min_length=1,
+        widget=forms.NumberInput(attrs={'type': 'number'}),
+        required=False,
+        error_messages={
+            'max_length': 'A quantidade deve ter no máximo 5 dígitos.',
+            'min_length': 'A quantidade deve ter no minimo 1 dígito.',
+            'invalid': 'Por favor, insira um número válido.',
+        },
+        label='Quantidade'
+    )
+
+
+class formualarioRegistoEquipamentos(forms.Form):
+    nome = forms.CharField(max_length=100, required=False)
+    descricao = forms.CharField(max_length=100, required=False)
+    modelo = forms.ChoiceField( required=False)#choices=tiposProdutos,
+    maoObra = forms.ChoiceField( required=False)#choices=tiposProdutos,
+    quantidade = forms.IntegerField(required=False)
+    preco = forms.FloatField(required=False)

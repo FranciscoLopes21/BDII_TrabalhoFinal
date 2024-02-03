@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/8b1d1b66fd.js" crossorigin="anonymous"></script>
+    <title>Loja</title>
+
+    
+</head>
+<body>
+
+{% extends 'main.html' %}
+
+
+
+
+
+
+
+{% block content %}
+
+<div class="navbar">
+    <a href="{% url 'dashBoardAdmin' %}">DashBoard</a>
+    <a href="{% url 'listarFornecedor' %}">
+        <i class="fa-solid fa-people-group"></i>Fornecedores
+    </a>
+    <a href="{% url 'listarComponentes' %}">
+        <i class="fa-solid fa-gears"></i>Componentes
+    </a>
+    <a href="{% url 'listarEncomendas' %}">
+        <i class="fa-solid fa-truck-field"></i>Encomendas 
+    </a>
+    <a href="{% url 'listarMaoDeObra' %}">
+        <i class="fa-solid fa-helmet-safety"></i>Mão de obra
+    </a>
+    <a href="{% url 'listarEquipamentos' %}">
+        <i class="fa-solid fa-desktop"></i>Equipamentos
+    </a>
+    <a href="{% url 'logout' %}">
+        <i class="fa-solid fa-right-from-bracket"></i>Logout
+    </a>
+</div>
+
+<div class="box">
+        
+    <div class="container">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        
+
+
+
+    <div class="action">
+        <h2>Todas as Encomendas</h2>
+        <br>
+        <form id="uploadForm" method="post" enctype="multipart/form-data" style="float: right;">
+            {% csrf_token %}
+            <input type="file" id="jsonFileInput" accept=".json" style="display: none" />
+            <label for="jsonFileInput" class="button"><i class="fa-solid fa-file-import"></i>Upload guia de entrega</label>
+        </form>
+        <script>
+            document.getElementById('jsonFileInput').addEventListener('change', function() {
+                const fileInput = this;
+                const file = fileInput.files[0];
+
+                if (file) {
+                    const formData = new FormData();
+                    formData.append('json_file', file);
+
+                    // Adicione estas linhas para ler o conteúdo do arquivo e adicionar como JSON
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const jsonContent = event.target.result;  // Adicione esta linha
+                        formData.append('json_data', jsonContent);
+
+                        console.log('JSON enviado:', JSON.stringify(formData));
+
+                        fetch('{% url "importar_json_upload" %}', {
+                            method: 'POST',
+                            body: formData,
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Resposta do servidor:', data);
+                        })
+                        .catch(error => console.error('Erro na requisição:', error));
+                    };
+                    reader.readAsText(file);
+                }
+            });
+
+        </script>
+        
+        <div class="filter-form">
+            <form method="GET" action="{% url 'listarFornecedor' %}">
+                <label for="nome">Filtrar por Nome:</label>
+                <input type="text" class="form-control" name="nome" id="nome" value="{{ request.GET.nome }}">
+                <input class="button" type="submit" value="Filtrar" />
+            </form>
+        </div>
+
+        <br>
+        <br>
+        <button class="button" type="submit">
+            <i class="fas fa-truck-fast"></i> Entregues
+        </button>
+        <button class="button" type="submit">
+            <i class="fa-solid fa-exclamation"></i> Pendentes
+        </button>
+    </div>
+    <!-- Adicione este trecho de código no início do bloco "content" -->
+    
+    <!-- Fim do trecho adicionado -->
+   
+
+    <br>
+    <table>
+        <tr>
+            <th>Id</th> 
+            <th>Referência</th> 
+            <th>Quantidade</th> 
+            <th>Preço Total</th> 
+            <th>Data Encomenda</th> 
+            <th>Estado</th> 
+        </tr>
+        {% for result in encomendas %}
+        <tr>
+            <td>{{ result.0 }}</td>
+            <td>{{ result.1 }}</td>
+            <td>{{ result.2 }}</td>
+            <td>{{ result.3 }}</td>
+            <td>{{ result.4 }}</td>
+            <td>{{ result.5 }}</td>
+            <td>
+                <a href="{% url 'download_json' result.0 %}" class="button"><i class="fa-solid fa-file-lines"></i></a>
+                <a href="Delete/{{ result.0 }}/"><input class="button-outline" type="submit" value="Remover" /></a>
+            </td>
+        </tr> 
+        {% endfor %}
+    </table>
+
+    
+</div>
+</div>
+
+{% endblock content %}
+
+</body>
+</html>

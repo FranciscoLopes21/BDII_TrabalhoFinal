@@ -27,13 +27,13 @@
     <a href="{% url 'listarComponentes' %}">
         <i class="fa-solid fa-gears"></i>Componentes
     </a>
-    <a>
-        <i class="fa-solid fa-truck-field"></i>Encomendas
+    <a href="{% url 'listarEncomendas' %}">
+        <i class="fa-solid fa-truck-field"></i>Encomendas 
     </a>
     <a href="{% url 'listarMaoDeObra' %}">
         <i class="fa-solid fa-helmet-safety"></i>Mão de obra
     </a>
-    <a>
+    <a href="{% url 'listarEquipamentos' %}">
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
     <a href="{% url 'logout' %}">
@@ -74,12 +74,17 @@
 
         <br>
         <br>
-        <a href="{% url 'listarComponentes' %}" style="float: left;" class="mostrar-todos">
-            <i class="fa-solid fa-xmark"></i>
-        </a>
-        <a href="{% url 'listarComponentes' %}?filtro=em_falta" style="float: left;{% if filtro == 'em_falta' %} background-color: yellow; {% endif %}">
-            <input class="button" type="submit" value="Componentes em falta" />
-        </a>
+        
+        <div>
+            <a href="{% url 'listarComponentes' %}" class="button" style="float: left; margin-right: 10px; text-decoration: none;">
+                <i class="fa-solid fa-filter-circle-xmark"></i>
+            </a>
+            <a href="{% url 'listarComponentes' %}?filtro=em_falta" class="button" style="float: left; text-decoration: none;{% if filtro == 'em_falta' %} background-color: yellow; {% endif %}">
+                <i class="fa-solid fa-minus"></i> Componentes em falta
+            </a>
+            
+        </div>
+        
         
     </div>
     <!-- Adicione este trecho de código no início do bloco "content" -->
@@ -114,7 +119,7 @@
                 <a ><input class="button-outline" type="submit" value="Remover"/></a>
             </td>
             <td>
-                <a ><input class="button-outline" type="submit" value="Encomendar"/></a>
+                <a href="{% url 'enomendarComponentes' id=result.0 %}"><input class="button-outline" type="submit" value="Encomendar"/></a>
             </td>
         </tr> 
         {% endfor %}

@@ -9,8 +9,8 @@ urlpatterns = [
     path('room/', views.room, name="room"),
     path('dashBoard/', views.dashBoardAdmin, name="dashBoardAdmin"),
     path('registar/', views.registarUtilizador, name="registar"),
-    path('RegistarEquipamentos/', views.RegistarEquipamentos, name="RegistarEquipamentos"),
-    path('login/', views.loginClient, name='login'),
+    path('registarAdmin/', views.registarAdmin, name="registarAdmin"),
+    path('login/', views.loginUser, name='login'),
     path('logout/', logout_view, name='logout'),
     path('listarFornecedor/', listarFornecedores, name='listarFornecedor'),
     path('adicionarFornecedor/', views.adicionarFornecedor, name='adicionarFornecedor'),
@@ -19,6 +19,12 @@ urlpatterns = [
     path('adicionarMaoObra/', views.adicionarMaoObra, name='adicionarMaoObra'),
     path('listarComponentes/', views.listarComponentes, name='listarComponentes'),
     path('adicionarComponentes/', views.adicionarComponentes, name='adicionarComponentes'),
+    path('enomendarComponentes/<int:id>/', views.enomendarComponentes, name='enomendarComponentes'),
+    path('listarEncomendas/', views.listarEncomendas, name='listarEncomendas'),
+    path('download_json/<int:id_encomenda>/', views.download_json, name='download_json'),
+    path('importar_json_upload/', views.importar_json_upload, name='importar_json_upload'),
+    path('listarEquipamentos/', views.listarEquipamentos, name='listarEquipamentos'),
+    path('RegistarEquipamentos/', views.RegistarEquipamentos, name="RegistarEquipamentos"),
 
 ]
 

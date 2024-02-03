@@ -27,13 +27,13 @@
     <a href="{% url 'listarComponentes' %}">
         <i class="fa-solid fa-gears"></i>Componentes
     </a>
-    <a>
-        <i class="fa-solid fa-truck-field"></i>Encomendas
+    <a href="{% url 'listarEncomendas' %}">
+        <i class="fa-solid fa-truck-field"></i>Encomendas 
     </a>
     <a href="{% url 'listarMaoDeObra' %}">
         <i class="fa-solid fa-helmet-safety"></i>Mão de obra
     </a>
-    <a>
+    <a href="{% url 'listarEquipamentos' %}">
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
     <a href="{% url 'logout' %}">
@@ -70,6 +70,7 @@
                 <input class="button" type="submit" value="Filtrar" />
             </form>
         </div>
+        
 
     </div>
     <!-- Adicione este trecho de código no início do bloco "content" -->

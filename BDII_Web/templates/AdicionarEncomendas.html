@@ -163,16 +163,12 @@
     </div>
     {% endif %}
 
-    <h3>Adicionar Mão de Obra</h3>
+    <h3>Encomendar componente</h3>
     <form action="" method="POST">
         {% csrf_token %}
         <div class="form-group">
-            {{ form.nome.label_tag }}
-            {{ form.nome }}
-        </div>
-        <div class="form-group">
-            {{ form.preco.label_tag }}
-            {{ form.preco }}
+            {{ form.quantidade.label_tag }}
+            {{ form.quantidade }}
         </div>
         <br>
         <input class="submit-btn" type="submit" value="Registar"/>

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db import connection
-from .forms import formularioRegisto, formualarioRegistoEquipamentos, formularioLogin, formularioAdiconarFornecedor, formularioAdiconarMaoObra, formularioAdicionarComponentes
+from .forms import formularioRegisto, formualarioRegistoEquipamentos, formularioLogin, formularioAdiconarFornecedor, formularioAdiconarMaoObra, formularioAdicionarComponentes, formularioAdiconarEncomenda
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import login, authenticate
@@ -10,19 +10,90 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
+import re
+import json
+from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.db import connection
 
 # Create your views here.
-
-
 def home(request):
     return render(request, 'home.html')
 
+# regista um novo Cliente
+def registarUtilizador(request):
+    if request.method == 'POST':
+        form = formularioRegisto(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["email"],
+            nome = form.cleaned_data["nome"], 
+            apelido = form.cleaned_data["apelido"], 
+            dataNascimento = form.cleaned_data["data_nascimento"],
+            morada = form.cleaned_data["morada"], 
+            passwordEcryp = make_password(form.cleaned_data["password"])
 
-def logout_view(request):
-    logout(request)
-    return redirect('home') 
+            with connection.cursor() as cursor:
+                try:
+                    cursor.execute(
+                        "CALL registar_Cliente(%s, %s, %s, %s,%s, %s)", [nome, apelido, dataNascimento, morada, email, passwordEcryp]
+                        )
+                except Exception as e:
+                    messages.error(request, str(e))
+                    return redirect('registar')
+                
 
-def loginClient(request):
+            # Autenticar o user recém-criado usando o modelo de usuário padrão do Django
+            user = authenticate(request, username=email, password=passwordEcryp)
+            if user is not None:
+                login(request, user)
+
+            # Redirecionar para a página inicial room
+            return redirect('room')
+        
+    else:
+        form = formularioRegisto()
+
+    return render(request, 'Registar.html', {'form': form})
+
+# regista um novo Admin
+def registarAdmin(request):
+    if request.method == 'POST':
+        form = formularioRegisto(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["email"]
+            nome = form.cleaned_data["nome"], 
+            apelido = form.cleaned_data["apelido"], 
+            dataNascimento = form.cleaned_data["data_nascimento"],
+            morada = form.cleaned_data["morada"], 
+            passwordEcryp = make_password(form.cleaned_data["password"])
+
+            with connection.cursor() as cursor:
+                try:
+                    cursor.execute(
+                        "CALL registar_Admin(%s, %s, %s, %s,%s, %s)", [nome, apelido, dataNascimento, morada, email, passwordEcryp]
+                        )
+                except Exception as e:
+                    messages.error(request, str(e))
+                    return redirect('registar')
+                
+
+            # Autenticar o user recém-criado usando o modelo de usuário padrão do Django
+            user = authenticate(request, username=email, password=passwordEcryp)
+            if user is not None:
+                login(request, user)
+
+            # Redirecionar para a página inicial room
+            return redirect('dashBoard')
+        
+    else:
+        form = formularioRegisto()
+
+    return render(request, 'registarAdmin.html', {'form': form})
+
+
+def loginUser(request):
     form = formularioLogin()
 
     if request.method == 'POST':
@@ -35,7 +106,7 @@ def loginClient(request):
             cursor.execute("SELECT * FROM users WHERE email = %s", [email])
             user_data = cursor.fetchone()
 
-        if user_data and password == user_data[6]:  # Supondo que a senha esteja no índice 5
+        if user_data and check_password(password, user_data[6]):  # Supondo que a senha esteja no índice 5
             # Criar ou obter um objeto User do Django
             user, created = User.objects.get_or_create(username=email, email=email)
             
@@ -54,13 +125,21 @@ def loginClient(request):
                 request.session['user_id'] = user.id
                 request.session['user_email'] = user.email
                 request.session['tipo_user'] = user_data[7]
-
-                return redirect('room')
+                if user_data[7] == "admin":
+                    return redirect('dashBoardAdmin')
+                else:
+                    return redirect('room')
         else:
             messages.error(request, 'Credenciais inválidas. Tente novamente.')
 
     # Passar o formulário para o contexto ao renderizar a página
     return render(request, 'login.html', {'form': form})
+
+#Logout
+def logout_view(request):
+    logout(request)
+    return redirect('home') 
+
 
 @login_required(login_url='/login/') 
 def room(request):
@@ -79,6 +158,7 @@ def room(request):
     # Restante da lógica da sua view
     return render(request, 'room.html', {'user': user})
 
+
 @login_required(login_url='/login/') 
 def dashBoardAdmin(request):
     # Verificar se o usuário é do tipo "admin" usando a informação armazenada na sessão
@@ -93,44 +173,6 @@ def dashBoardAdmin(request):
 
     # Restante da lógica da sua view
     return render(request, 'dashboardAdmin.html')
-
-# regista um novo utilizador
-def registarUtilizador(request):
-    if request.method == 'POST':
-        form = formularioRegisto(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data["email"]
-
-            # Verificar se o usuário já existe na tabela 'users' com SQL direto
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT 1 FROM users WHERE email = %s", [email])
-                user_exists = cursor.fetchone()
-
-            if user_exists:
-                messages.error(request, 'Este email já está em uso.')
-                return redirect('registar')
-
-            # Continuação do seu código para inserir o usuário na tabela 'users'
-            with connection.cursor() as cursor:
-                # Exemplo de inserção
-                cursor.execute(
-                    "INSERT INTO users (nome, apelido, data_nascimento, morada, email, password, tipo_user) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                    [form.cleaned_data["nome"], form.cleaned_data["apelido"], form.cleaned_data["data_nascimento"],
-                     form.cleaned_data["morada"], email, form.cleaned_data["password"], 'Client']
-                )
-
-                # Autenticar o usuário recém-criado usando o modelo de usuário padrão do Django
-                user = authenticate(request, username=email, password=form.cleaned_data["password"])
-                if user is not None:
-                    login(request, user)
-
-                # Redirecionar para a página inicial room
-                return redirect('room')
-
-    else:
-        form = formularioRegisto()
-
-    return render(request, 'Registar.html', {'form': form})
 
 
 # regista um novo utilizador
@@ -368,5 +410,182 @@ def adicionarComponentes(request):
 
 
     return render(request, 'AdicionarComponentes.html', {'form': form})   
+
+
+# adicionar fornecedor 
+@login_required(login_url='/login/') 
+def enomendarComponentes(request, id):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        return redirect('login')
+    
+    elif tipo_user == 'admin':
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM obter_dados_componente(%s)", [id])
+            resultado = cursor.fetchone()
+
+        if resultado:
+            form = formularioAdiconarEncomenda(initial={'referencia': resultado[0], 'precoPeca': resultado[1]})
+            
+            if request.method == 'POST':
+                form = formularioAdiconarEncomenda(request.POST)
+                if form.is_valid():
+                    quantidade = int(form.cleaned_data["quantidade"])
+                    
+                    # Extrair a parte numérica da string e substituir ',' por '.'
+                    precoPeca_str = re.sub(r'[^0-9,]', '', resultado[1]).replace(',', '.')
+
+                    precoPeca = float(precoPeca_str)
+
+                    precoTotal = precoPeca * quantidade
+
+                    # Remover o símbolo "€" do preço por peça
+                    precoPeca_formatado = resultado[1].replace('€', '').strip()
+
+                    with connection.cursor() as cursor:
+                        cursor.execute(
+                            "CALL inserir_encomenda(%s, %s, %s::MONEY, %s::MONEY)", [id, quantidade, precoPeca_formatado, precoTotal]
+                        )
+
+                    # Configurar a resposta HTTP para download do arquivo JSON
+                    with connection.cursor() as cursor:
+                        cursor.execute("SELECT dados_json FROM guias_encomenda WHERE id_encomenda = LASTVAL()")
+                        dados_encomenda = cursor.fetchall()
+
+                    if dados_encomenda:
+                        dados_encomenda = dados_encomenda[0][0]
+
+                    response = HttpResponse(dados_encomenda, content_type='application/json')
+                    response['Content-Disposition'] = f'attachment; filename=guia_encomenda_{id}.json'
+
+                    messages.success(request, 'Componente adicionado com sucesso.')
+
+                    return redirect('listarComponentes')
+                
+                return render(request, 'AdicionarEncomendas.html', {'form': form})
+            
+            return render(request, 'AdicionarEncomendas.html', {'form': form})
+        
+        else:
+            form = formularioAdiconarEncomenda()
+
+    return render(request, 'AdicionarEncomendas.html', {'form': form})
+
+
+
+@login_required(login_url='/login/') 
+def listarEncomendas(request):
+
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM vista_encomendas")
+        encomendas = cursor.fetchall()
+
+    return render(request, 'listaEncomendas.html', {'encomendas': encomendas})   
+
+
+@login_required(login_url='/login/') 
+def download_json(request, id_encomenda):
+
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Aqui você coloca a lógica para obter os dados do banco de dados
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT dados_json FROM guias_encomenda WHERE id_encomenda = %s", [id_encomenda])
+        dados_json = cursor.fetchone()
+
+    # Verificar se encontrou dados para a encomenda específica
+    if dados_json:
+        # Convertendo os dados para string JSON
+        json_content = dados_json[0]
+        
+        # Configurar a resposta HTTP para download do arquivo JSON
+        response = HttpResponse(json_content, content_type='application/json')
+        response['Content-Disposition'] = f'attachment; filename=encomenda_{id_encomenda}.json'
+
+        return response
+    else:
+        # Se não encontrar dados, pode retornar uma resposta indicando isso
+        return HttpResponse("Dados da encomenda não encontrados.")
+
+import logging
+
+def importar_json_upload(request):
+    if request.method == 'POST':
+        try:
+            json_file = request.FILES.get('json_file')
+            json_data = json.load(json_file)
+
+            id_encomenda = json_data.get('id_encomenda')
+            guia_encomenda = json_data.get('guia_encomenda')
+
+            logging.info(f'Recebido JSON: {json_data}')
+            logging.info(f"Resultado da função: {result}")
+
+            # Restante do código...
+        except json.JSONDecodeError:
+            logging.error('Erro ao decodificar JSON')
+
+            # Chama a função PL/pgSQL para alterar o estado para entregue
+            with connection.cursor() as cursor:
+                cursor.callproc('alterar_estado_entregue', [json.dumps(json_data)])
+
+                # Captura o resultado da função (pode ser ajustado conforme necessário)
+                result = cursor.fetchone()
+
+            # Verifica o resultado
+            if result and result[0] == '{"status": "success", "message": "Encomenda entregue com sucesso."}':
+                return JsonResponse({'status': 'success', 'message': 'Encomenda entregue com sucesso.'})
+            else:
+                return JsonResponse({'status': 'error', 'message': 'A guia de encomenda não corresponde à encomenda.'})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Formato JSON inválido.'})
+
+    return JsonResponse({'status': 'error', 'message': 'Método não permitido.'})
+
+
+#Mostrar Fornecedores
+@login_required(login_url='/login/') 
+def listarEquipamentos(request):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    nome_filter = request.GET.get('nome', '')
+    order_by = request.GET.get('order_by', '')  # Novo parâmetro para ordenação
+
+    # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
+    with connection.cursor() as cursor:
+        if nome_filter:
+            query = "SELECT * FROM maoObra WHERE nome LIKE %s"
+            params = ['%' + nome_filter + '%']
+        else:
+            query = "SELECT * FROM maoObra"
+            params = []
+
+        if order_by == 'preco_asc':
+            query += " ORDER BY preco ASC"
+        elif order_by == 'preco_desc':
+            query += " ORDER BY preco DESC"
+
+        cursor.execute(query, params)
+        maoObra = cursor.fetchall()
+        
+    # Passar os dados para o template
+    return render(request, 'listaEquipamentos.html', {'maoObra': maoObra, 'nome_filter': nome_filter, 'order_by': order_by})
 
 
