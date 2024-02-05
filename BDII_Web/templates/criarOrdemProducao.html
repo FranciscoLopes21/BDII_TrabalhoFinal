@@ -135,6 +135,9 @@
     <a href="{% url 'listarEquipamentos' %}">
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
+    <a href="{% url 'listarOrdensProducao' %}">
+        <i class="fa-solid fa-right-from-bracket"></i>Ordens de Pordução
+    </a>
     <a href="{% url 'logout' %}">
         <i class="fa-solid fa-right-from-bracket"></i>Logout
     </a>
@@ -167,12 +170,12 @@
     <form action="" method="POST">
         {% csrf_token %}
         <div class="form-group">
-            {{ form.nome.label_tag }}
-            {{ form.nome }}
+            {{ form.quant.label_tag }}
+            {{ form.quant }}
         </div>
         <div class="form-group">
-            {{ form.preco.label_tag }}
-            {{ form.preco }}
+            {{ form.maoDeObra.label_tag }}
+            {{ form.maoDeObra }}
         </div>
         <br>
         <input class="submit-btn" type="submit" value="Registar"/>

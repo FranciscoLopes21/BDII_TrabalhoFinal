@@ -25,6 +25,14 @@ urlpatterns = [
     path('importar_json_upload/', views.importar_json_upload, name='importar_json_upload'),
     path('listarEquipamentos/', views.listarEquipamentos, name='listarEquipamentos'),
     path('RegistarEquipamentos/', views.RegistarEquipamentos, name="RegistarEquipamentos"),
+    path('associarCompEquip/<int:id>/', views.associarCompEquip, name="associarCompEquip"),
+    path('desassociarComponente/<int:id_equipamento>/<int:id_componente>/', views.desassociarComponente, name='desassociarComponente'),
+    path('criarOrdemProducao/<int:id_equipamento>/', views.criarOrdemProducao, name='criarOrdemProducao'),
+    path('listarOrdensProducao/', views.listarOrdensProducao, name='listarOrdensProducao'),
+    path('concluir_ordem/<int:ordem_id>/', views.concluir_ordem, name='concluir_ordem'),
+    path('cancelar_ordem/<int:ordem_id>/', views.cancelar_ordem, name='cancelar_ordem'),
+
+
 
 ]
 

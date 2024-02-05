@@ -55,27 +55,33 @@
         </div>
         {% endif %}
 
+        
+
+
+
     <div class="action">
-        <h2>Todos os Equipamentos</h2>
+        <h2>Todas as Ordens de Produção</h2>
         <br>
         
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-
-            <form method="GET" action="{% url 'listarMaoDeObra' %}" style="margin-right: auto;">
+        <div class="filter-form">
+            <form method="GET" action="{% url 'listarMaoDeObra' %}">
                 <label for="nome">Filtrar por Nome:</label>
                 <input type="text" class="form-control" name="nome" id="nome" value="{{ request.GET.nome }}">
                 <input class="button" type="submit" value="Filtrar" />
             </form>
-        
-            <a href="{% url 'RegistarEquipamentos' %}" class="button" style="text-decoration: none;">
-                <i class="fa-solid fa-plus"></i>Criar Equipamento
-            </a>
-        
         </div>
 
         <br>
         <br>
-        
+        <div>
+            <a href="{% url 'listarOrdensProducao' %}" class="button" style="text-decoration: none; margin-right: 10px;">
+                <i class="fa-solid fa-filter-circle-xmark"></i>
+            </a>
+            <a href="{% url 'listarOrdensProducao' %}?status=producao" class="button" style="text-decoration: none; margin-right: 10px;">Em Produção
+            </a>
+            <a href="{% url 'listarOrdensProducao' %}?status=concluído" class="button" style="text-decoration: none;">Concluido
+            </a>
+        </div>
 
     </div>
     <!-- Adicione este trecho de código no início do bloco "content" -->
@@ -86,36 +92,41 @@
     <br>
     <table>
         <tr>
-            <th>Id</th> 
-            <th>Nome</th> 
-            <th>Descrição</th>
+            <th>ID</th>
+            <th>Equipamento</th>
+            <th>Nome</th>
             <th>Modelo</th>
-            <th>Quantidade</th>
-            <th>Stock</th>
+            <th>Mão de Obra</th>
             <th>Preço</th>
-            <th>Desconto</th>
-            <th>Completo</th>
+            <th>Unidade €</th>
+            <th>Quantidade</th>
+            <th>Preço Total</th>
+            <th>Estado</th>
+            <th>Ações</th>
         </tr>
-        {% for result in equipamentos %}
+        {% for result in ordensProducao %}
         <tr>
-            <td>{{result.0}}</td>
-            <td>{{result.1}}</td>
-            <td>{{result.2}}</td>
-            <td>{{result.3}}</td>
-            <td>{{result.4}}</td>
-            <td>{{result.5}}</td>
-            <td>{{result.6}}</td>
-            <td>{{result.7}}</td>
-            <td>{{result.8}}</td>
+            <td>{{ result.0 }}</td>
+            <td>{{ result.1 }}</td>
+            <td>{{ result.2 }}</td>
+            <td>{{ result.3 }}</td>
+            <td>{{ result.5 }}</td>
+            <td>{{ result.6 }}</td>
+            <td>{{ result.7 }}</td>
+            <td>{{ result.8 }}</td>
+            <td>{{ result.9 }}</td>
+            <td>{{ result.10 }}</td>
             <td>
-                <a href="{% url 'associarCompEquip' id=result.0 %}"><input class="button-outline" type="submit" value="Associar Componentes"/></a>
-                <a href="{{result.1}}/"><input class="button" type="submit" value="Alterar"/></a>
-                <a href="Delete/{{result.0}}/"><input class="button-outline" type="submit" value="Remover"/></a>
-                <a href="{% url 'criarOrdemProducao' id_equipamento=result.0 %}"><input class="button-outline" type="submit" value="Ordem de Produção"/></a>
+                {% if result.10 == 'Produção' %}
+                <a href="{% url 'concluir_ordem' ordem_id=result.0 %}" class="button" style="text-decoration: none;">Concluir</a>
+                <a href="{% url 'cancelar_ordem' ordem_id=result.0 %}" class="button-outline" style="text-decoration: none;">Cancelar</a>
+            {% else %}
+            {% endif %}
             </td>
-        </tr> 
+        </tr>
         {% endfor %}
     </table>
+
 
     
 </div>

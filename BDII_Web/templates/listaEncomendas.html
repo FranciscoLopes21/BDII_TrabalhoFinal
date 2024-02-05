@@ -36,6 +36,9 @@
     <a href="{% url 'listarEquipamentos' %}">
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
+    <a href="{% url 'listarOrdensProducao' %}">
+        <i class="fa-solid fa-right-from-bracket"></i>Ordens de Pordução
+    </a>
     <a href="{% url 'logout' %}">
         <i class="fa-solid fa-right-from-bracket"></i>Logout
     </a>
@@ -107,6 +110,9 @@
 
         <br>
         <br>
+        <a href="{% url 'listarEncomendas' %}" class="button" style="text-decoration: none; margin-right: 10px;">
+            <i class="fa-solid fa-filter-circle-xmark"></i>
+        </a>
         <button class="button" type="submit">
             <i class="fas fa-truck-fast"></i> Entregues
         </button>

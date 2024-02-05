@@ -36,13 +36,15 @@
     <a href="{% url 'listarEquipamentos' %}">
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
+    <a href="{% url 'listarOrdensProducao' %}">
+        <i class="fa-solid fa-right-from-bracket"></i>Ordens de Pordução
+    </a>
     <a href="{% url 'logout' %}">
         <i class="fa-solid fa-right-from-bracket"></i>Logout
     </a>
 </div>
 
 <div class="box">
-        
     <div class="container">
         {% if messages %}
         <div class="messages">
@@ -51,62 +53,45 @@
             {% endfor %}
         </div>
         {% endif %}
-
-        
-
-
-
-    <div class="action">
-        <h2>Todos os Fornecedores</h2>
-        <br>
-        <a href="{% url 'adicionarFornecedor' %}" style="float: right;">
-            <input class="button" type="submit" value="Adicionar Fornecedor" />
-        </a>
-
-        <div class="filter-form">
-            <form method="GET" action="{% url 'listarFornecedor' %}">
-                <label for="nome">Filtrar por Nome:</label>
-                <input type="text" class="form-control" name="nome" id="nome" value="{{ request.GET.nome }}">
-                <input class="button" type="submit" value="Filtrar" />
-            </form>
+        <div class="action">
+            <h2>Todos os Fornecedores</h2>
+            <br>
+            <a href="{% url 'adicionarFornecedor' %}" style="float: right;">
+                <input class="button" type="submit" value="Adicionar Fornecedor" />
+            </a>
+            <div class="filter-form">
+                <form method="GET" action="{% url 'listarFornecedor' %}">
+                    <label for="nome">Filtrar por Nome:</label>
+                    <input type="text" class="form-control" name="nome" id="nome" value="{{ request.GET.nome }}">
+                    <input class="button" type="submit" value="Filtrar" />
+                </form>
+            </div>
         </div>
-        
-
+        <br>
+        <table>
+            <tr>
+                <th>Id</th> 
+                <th>Nome</th> 
+                <th>Morada</th> 
+                <th>Contacto</th> 
+                <th>Email</th> 
+            </tr>
+            {% for result in fornecedores%}
+            <tr>
+                <td>{{result.0}}</td>
+                <td>{{result.1}}</td>
+                <td>{{result.2}}</td>
+                <td>{{result.3}}</td>
+                <td>{{result.4}}</td>
+                <td>
+                    <a href="{{result.1}}/"><input class="button" type="submit" value="Alterar"/></a>
+                    <a href="Delete/{{result.0}}/"><input class="button-outline" type="submit" value="Remover"/></a>
+                </td>
+            </tr> 
+            {% endfor %}
+        </table>
     </div>
-    <!-- Adicione este trecho de código no início do bloco "content" -->
-    
-    <!-- Fim do trecho adicionado -->
-
-
-    <br>
-    <table>
-        <tr>
-            <th>Id</th> 
-            <th>Nome</th> 
-            <th>Morada</th> 
-            <th>Contacto</th> 
-            <th>Email</th> 
-        </tr>
-        {% for result in fornecedores%}
-        <tr>
-            <td>{{result.0}}</td>
-            <td>{{result.1}}</td>
-            <td>{{result.2}}</td>
-            <td>{{result.3}}</td>
-            <td>{{result.4}}</td>
-            <td>
-                <a href="{{result.1}}/"><input class="button" type="submit" value="Alterar"/></a>
-                <a href="Delete/{{result.0}}/"><input class="button-outline" type="submit" value="Remover"/></a>
-            </td>
-        </tr> 
-        {% endfor %}
-    </table>
-
-    
 </div>
-</div>
-
 {% endblock content %}
-
 </body>
 </html>

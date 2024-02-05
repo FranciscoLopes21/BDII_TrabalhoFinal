@@ -1,21 +1,14 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://kit.fontawesome.com/8b1d1b66fd.js" crossorigin="anonymous"></script>
-    <title>Loja</title>
-
-    
+    <title>Associar Componentes a Equipamentos</title>
 </head>
 <body>
 
 {% extends 'main.html' %}
-
-
-
-
-
-
 
 {% block content %}
 
@@ -66,15 +59,8 @@
                 <input type="text" class="form-control" name="nome" id="nome" value="{{ request.GET.nome }}">
                 <input class="button" type="submit" value="Filtrar" />
             </form>
-        
-            <a href="{% url 'RegistarEquipamentos' %}" class="button" style="text-decoration: none;">
-                <i class="fa-solid fa-plus"></i>Criar Equipamento
-            </a>
-        
+    
         </div>
-
-        <br>
-        <br>
         
 
     </div>
@@ -86,32 +72,43 @@
     <br>
     <table>
         <tr>
-            <th>Id</th> 
             <th>Nome</th> 
-            <th>Descrição</th>
-            <th>Modelo</th>
-            <th>Quantidade</th>
-            <th>Stock</th>
-            <th>Preço</th>
-            <th>Desconto</th>
-            <th>Completo</th>
+            <th>Referencia</th> 
+            <th>Nome Fornecedor</th>
+            <th>Categoria</th>
         </tr>
-        {% for result in equipamentos %}
+        {% for result in componentes%}
         <tr>
             <td>{{result.0}}</td>
             <td>{{result.1}}</td>
             <td>{{result.2}}</td>
             <td>{{result.3}}</td>
-            <td>{{result.4}}</td>
-            <td>{{result.5}}</td>
-            <td>{{result.6}}</td>
-            <td>{{result.7}}</td>
-            <td>{{result.8}}</td>
             <td>
-                <a href="{% url 'associarCompEquip' id=result.0 %}"><input class="button-outline" type="submit" value="Associar Componentes"/></a>
-                <a href="{{result.1}}/"><input class="button" type="submit" value="Alterar"/></a>
-                <a href="Delete/{{result.0}}/"><input class="button-outline" type="submit" value="Remover"/></a>
-                <a href="{% url 'criarOrdemProducao' id_equipamento=result.0 %}"><input class="button-outline" type="submit" value="Ordem de Produção"/></a>
+                <form method="POST" action="{% url 'associarCompEquip' id_equipamento %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="componente_id" value="{{ result.0 }}">
+                    <input class="button" type="submit" value="Associar"/>
+                </form>
+            </td>
+        </tr> 
+        {% endfor %}
+    </table>
+
+    <br>
+    <table>
+        <tr>
+            <th>Id</th> 
+            <th>Qunatidade</th> 
+        </tr>
+        {% for result in componentes_associados%}
+        <tr>
+            <td>{{result.2}}</td>
+            <td>{{result.1}}</td>
+            <td>
+                <form method="POST" action="{% url 'desassociarComponente' id_equipamento=id_equipamento id_componente=result.0 %}">
+                    {% csrf_token %}
+                    <input class="button-outline" type="submit" value="Desassociar"/>
+                </form>
             </td>
         </tr> 
         {% endfor %}

@@ -93,7 +93,36 @@ class formularioAdiconarEncomenda(forms.Form):
 class formualarioRegistoEquipamentos(forms.Form):
     nome = forms.CharField(max_length=100, required=False)
     descricao = forms.CharField(max_length=100, required=False)
-    modelo = forms.ChoiceField( required=False)#choices=tiposProdutos,
-    maoObra = forms.ChoiceField( required=False)#choices=tiposProdutos,
-    quantidade = forms.IntegerField(required=False)
-    preco = forms.FloatField(required=False)
+    modelo = forms.CharField(max_length=100, required=False)#choices=tiposProdutos,
+    desconto = forms.CharField(
+        max_length=3,
+        min_length=1,
+        widget=forms.NumberInput(attrs={'type': 'number'}),
+        required=False,
+        error_messages={
+            'max_length': 'A quantidade deve ter no máximo 3 dígitos.',
+            'min_length': 'A quantidade deve ter no minimo 1 dígito.',
+            'invalid': 'Por favor, insira um número válido.',
+        },
+        label='Desconto %'
+    )
+
+
+
+class formularioCriarOrdemPorducao(forms.Form):
+    quant = forms.CharField(
+        max_length=5,
+        min_length=1,
+        widget=forms.NumberInput(attrs={'type': 'number'}),
+        required=False,
+        error_messages={
+            'max_length': 'A quantidade deve ter no máximo 5 dígitos.',
+            'min_length': 'A quantidade deve ter no minimo 1 dígito.',
+            'invalid': 'Por favor, insira um número válido.',
+        },
+        label='Quantidade'
+    )
+    maoDeObra = forms.ChoiceField(
+        choices=[], required=False,
+        label='Mão de obra'
+    )#choices=fornecedor,

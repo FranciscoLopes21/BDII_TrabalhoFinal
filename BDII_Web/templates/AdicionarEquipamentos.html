@@ -118,6 +118,31 @@
 
 {% block content %}
 
+<div class="navbar">
+    <a href="{% url 'dashBoardAdmin' %}">DashBoard</a>
+    <a href="{% url 'listarFornecedor' %}">
+        <i class="fa-solid fa-people-group"></i>Fornecedores
+    </a>
+    <a href="{% url 'listarComponentes' %}">
+        <i class="fa-solid fa-gears"></i>Componentes
+    </a>
+    <a href="{% url 'listarEncomendas' %}">
+        <i class="fa-solid fa-truck-field"></i>Encomendas 
+    </a>
+    <a href="{% url 'listarMaoDeObra' %}">
+        <i class="fa-solid fa-helmet-safety"></i>Mão de obra
+    </a>
+    <a href="{% url 'listarEquipamentos' %}">
+        <i class="fa-solid fa-desktop"></i>Equipamentos
+    </a>
+    <a href="{% url 'listarOrdensProducao' %}">
+        <i class="fa-solid fa-right-from-bracket"></i>Ordens de Pordução
+    </a>
+    <a href="{% url 'logout' %}">
+        <i class="fa-solid fa-right-from-bracket"></i>Logout
+    </a>
+</div>
+
 <div class="container">
 
         {% if messages %}
@@ -128,7 +153,6 @@
         </div>
     {% endif %}
 
-
     <h3>Adicionar Equipamentos</h3>
     <form action="" method="POST">
         {% csrf_token %}
@@ -137,28 +161,21 @@
             {{ form.nome }}
         </div>
         <div class="form-group">
-            {{ form.referencia.label_tag }}
-            {{ form.referencia }}
+            {{ form.descricao.label_tag }}
+            {{ form.descricao }}
         </div>
         <div class="form-group">
-            {{ form.componentes.label_tag }}
-            {{ form.componentes }}
+            {{ form.modelo.label_tag }}
+            {{ form.modelo }}
         </div>
         <div class="form-group">
-            {{ form.maoObra.label_tag }}
-            {{ form.maoObra }}
-        </div>
-        <div class="form-group">
-            {{ form.quantidade.label_tag }}
-            {{ form.quantidade }}
-        </div>
-        <div class="form-group">
-            {{ form.preco.label_tag }}
-            {{ form.preco }}
+            {{ form.desconto.label_tag }}
+            {{ form.desconto }}
         </div>
         <br>
         <input class="submit-btn" type="submit" value="Registar"/>
     </form>
+    
 </div>
 
 {% endblock content %}

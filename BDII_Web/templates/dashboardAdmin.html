@@ -31,38 +31,85 @@
     <a href="{% url 'listarEquipamentos' %}">
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
+    <a href="{% url 'listarOrdensProducao' %}">
+        <i class="fa-solid fa-right-from-bracket"></i>Ordens de Pordução
+    </a>
     <a href="{% url 'logout' %}">
         <i class="fa-solid fa-right-from-bracket"></i>Logout
     </a>
 </div>
 <div class="box">
-        
     <br>
-    <h2>Encomendas por Validar</h2>
+    <h2>Componentes em falta</h2>
+    {% if componentes_em_falta %}
+        <br>
+        <table>
+            <tr>
+                <th>Id</th> 
+                <th>Nome</th> 
+                <th>Referencia</th> 
+                <th>Quantidade</th> 
+                <th>Stock Minimo</th> 
+                <th>Fornecedor</th> 
+                <th>Categoria</th> 
+                <th>Preço</th> 
+            </tr>
+            {% for result in componentes_em_falta %}
+                <tr>
+                    <td>{{result.0}}</td>
+                    <td>{{result.1}}</td>
+                    <td>{{result.2}}</td>
+                    <td>{{result.3}}</td>
+                    <td>{{result.4}}</td>
+                    <td>{{result.5}}</td>
+                    <td>{{result.6}}</td>
+                    <td>{{result.7}}</td>
+                    <td>
+                        <a href="{% url 'enomendarComponentes' id=result.0 %}"><input class="button-outline" type="submit" value="Encomendar"/></a>
+                    </td>
+                </tr> 
+            {% endfor %}
+        </table>
+    {% else %}
+        <h2 class="text">Não existem componentes em falta</h2>
+    {% endif %}
     <br>
-
-    <table>
-        <tr>
-           <th>ID Encomenda</th> 
-           <th>Utilizador</th> 
-           <th>Data</th> 
-           <th>Preço</th> 
-           <th>Ações</th> 
-        </tr>
-        <tr>
-            <td>dfg</td>
-            <td>dfg</td>
-            <td>dfg</td>
-            <td>sfdf</td>
-            <td>
-                <a href=""><input class="button" type="submit" value="Validar"/></a>
-                <a href=""><input class="button-outline" type="submit" value="Cancelar"/></a>
-            </td>
-        </tr> 
-    </table>
-    <h2 class="text">Não existem encomendas por validar</h2>
-    
+    <h2>Encomendas Pendentes</h2>
+    {% if componentes_em_falta %}
+        <br>
+        <table>
+            <tr>
+                <th>Id</th> 
+                <th>Nome</th> 
+                <th>Referencia</th> 
+                <th>Quantidade</th> 
+                <th>Stock Minimo</th> 
+                <th>Fornecedor</th> 
+                <th>Categoria</th> 
+                <th>Preço</th> 
+            </tr>
+            {% for result in componentes_em_falta %}
+                <tr>
+                    <td>{{result.0}}</td>
+                    <td>{{result.1}}</td>
+                    <td>{{result.2}}</td>
+                    <td>{{result.3}}</td>
+                    <td>{{result.4}}</td>
+                    <td>{{result.5}}</td>
+                    <td>{{result.6}}</td>
+                    <td>{{result.7}}</td>
+                    <td>
+                        <a href=""><input class="button" type="submit" value="Validar"/></a>
+                        <a href=""><input class="button-outline" type="submit" value="Cancelar"/></a>
+                    </td>
+                </tr> 
+            {% endfor %}
+        </table>
+    {% else %}
+        <h2 class="text">Não existem componentes em falta</h2>
+    {% endif %}
 </div>
+
 
 {% endblock content %}
 

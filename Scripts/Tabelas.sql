@@ -53,3 +53,39 @@ CREATE TABLE guias_encomenda (
     dados_json JSONB,
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE equipamentos (
+    id_equipamentos SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    descricao TEXT,
+    modelo VARCHAR(255),
+    quantidade INT,
+	stock INT,
+    preco MONEY,
+    desconto INT,
+	completo BOOL
+);
+
+
+
+CREATE TABLE equipamentos_componentes (
+    id SERIAL PRIMARY KEY,
+    id_equipamento INTEGER REFERENCES equipamentos(id_equipamentos),
+    id_componente INTEGER REFERENCES componentes(componentes_id),
+    quantidade INTEGER,
+    CONSTRAINT unique_association UNIQUE (id_equipamento, id_componente)
+);
+
+
+CREATE TABLE ordemproducao (
+    id_ordem_prod SERIAL PRIMARY KEY,
+    id_equipamento INTEGER REFERENCES equipamentos(id_equipamentoS),
+    id_maoObra INTEGER REFERENCES maoobra(maoobra_id),
+    preco_maoObra MONEY, -- Nova coluna para armazenar o preço da mão de obra
+    preco_componentes MONEY, -- Nova coluna para armazenar o preço dos componentes
+    quantidade INTEGER,
+    preco_total MONEY,
+	estado VARCHAR(20)
+);
+
+
