@@ -42,22 +42,21 @@ BEGIN
     ELSE
         -- Inserir o user Cliente na tabela 'users'
         INSERT INTO users (nome, apelido, data_nascimento, morada, email, password, tipo_user)
-        VALUES (p_nome, p_apelido, p_data_nascimento, p_morada, p_email, p_password, 'Client');
+        VALUES (p_nome, p_apelido, p_data_nascimento, p_morada, p_email, p_password, 'client');
     END IF;
 END;
 $$;
 
 -- procedimento Registar Admin
-CREATE OR REPLACE PROCEDURE registar_Admin(
-    p_nome VARCHAR(255),
-    p_apelido VARCHAR(255),
-    p_data_nascimento DATE,
-    p_morada VARCHAR(255),
-    p_email VARCHAR(255),
-    p_password VARCHAR(255)
-)
-LANGUAGE plpgsql
-AS $$
+CREATE OR REPLACE PROCEDURE public.registar_admin(
+	IN p_nome character varying,
+	IN p_apelido character varying,
+	IN p_data_nascimento date,
+	IN p_morada character varying,
+	IN p_email character varying,
+	IN p_password character varying)
+LANGUAGE 'plpgsql'
+AS $BODY$
 DECLARE
     v_user_exists BOOLEAN;
 BEGIN
@@ -69,10 +68,14 @@ BEGIN
     ELSE
         -- Inserir o user Admin na tabela 'users'
         INSERT INTO users (nome, apelido, data_nascimento, morada, email, password, tipo_user)
-        VALUES (p_nome, p_apelido, p_data_nascimento, p_morada, p_email, p_password, 'Admin');
+        VALUES (p_nome, p_apelido, p_data_nascimento, p_morada, p_email, p_password, 'admin');
     END IF;
 END;
-$$;
+$BODY$;
+ALTER PROCEDURE public.registar_admin(character varying, character varying, date, character varying, character varying, character varying)
+    OWNER TO postgres;
+
+
 
 -- PROCEDIMENTO Adicionar Equipamentos
 CREATE OR REPLACE PROCEDURE public.adicionar_equipamento(
@@ -633,9 +636,10 @@ $$;
 
 
 
-CREATE OR REPLACE PROCEDURE desativarEquipamento(id_e INTEGER)
+CREATE OR REPLACE PROCEDURE public.desativarequipamento(
+	IN id_e integer)
 LANGUAGE 'plpgsql'
-AS $$
+AS $BODY$
 BEGIN
     -- Verificar se componente existe
     IF NOT EXISTS (SELECT 1 FROM equipamentos WHERE id_equipamentos = id_e) THEN
@@ -644,12 +648,15 @@ BEGIN
 
     -- Atualizar o estado para 'Inativo'
     UPDATE equipamentos
-    SET estado = 'Inativo'
+    SET estado = 'Inativo',
+		disponivel = False
     WHERE id_equipamentos = id_e;
 	
     COMMIT;
 END;
-$$;
+$BODY$;
+ALTER PROCEDURE public.desativarequipamento(integer)
+    OWNER TO postgres;
 
 
 CREATE OR REPLACE PROCEDURE ativarEquipamento(id_e INTEGER)
