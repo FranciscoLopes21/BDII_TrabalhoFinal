@@ -24,7 +24,12 @@ conexaomongo = pymongo.MongoClient('mongodb+srv://bd2:bd2@bd2.sciijcj.mongodb.ne
 
 # Create your views here.
 def home(request):
-    return render(request, 'home.html')
+    mongo_db = conexaomongo
+    colecaoEquipamentos = mongo_db["Equipamentos"]
+    equipamentos = colecaoEquipamentos.find({"estado": "Ativo", "disponivel": True}, {"_id": 0})
+    return render(request, 'home.html', {'equipamentos': equipamentos})
+
+
 
 # regista um novo Cliente
 def registarUtilizador(request):
@@ -132,7 +137,7 @@ def loginUser(request):
                 if user_data[7] == "admin":
                     return redirect('dashBoardAdmin')
                 else:
-                    return redirect('room')
+                    return redirect('listarEquipamentosMongo')
         else:
             messages.error(request, 'Credenciais inválidas. Tente novamente.')
 
@@ -207,19 +212,19 @@ def listarFornecedores(request):
         # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
         return redirect('login')
 
-    nome_filter = request.GET.get('nome', '')  # Obtém o valor do filtro de nome
+    nome_filtro = request.GET.get('nome', '')  # Obtém o valor do filtro de nome
     estado_filter = request.GET.get('status', '')  # Obtém o valor do filtro de estado
 
     # Consulta ao banco de dados para obter fornecedores com base nos filtros
     with connection.cursor() as cursor:
         cursor.execute(
             "SELECT * FROM listar_fornecedores(%s, %s)",
-            [nome_filter, estado_filter]
+            [nome_filtro, estado_filter]
         )
         fornecedores = cursor.fetchall()
 
     # Passar os dados para o template
-    return render(request, 'listaFornecedores.html', {'fornecedores': fornecedores, 'nome_filter': nome_filter, 'estado_filter': estado_filter})
+    return render(request, 'listaFornecedores.html', {'fornecedores': fornecedores, 'nome_filtro': nome_filtro, 'estado_filter': estado_filter})
 
 # adicionar fornecedor 
 @login_required(login_url='/login/') 
@@ -359,17 +364,17 @@ def listarComponentes(request):
 
 
     filtro = request.GET.get('filtro', '')
-    nome_filter = request.GET.get('referencia', '')  # Obtém o valor do filtro de nome
+    nome_filtro = request.GET.get('referencia', '')  # Obtém o valor do filtro de nome
 
     # Consulta ao banco de dados para obter fornecedores com base nos filtros
     with connection.cursor() as cursor:
         cursor.execute(
             "SELECT * FROM listar_componentes(%s, %s)",
-            [filtro, nome_filter]
+            [filtro, nome_filtro]
         )
         componentes = cursor.fetchall()
 
-    return render(request, 'listarComponentes.html', {'componentes': componentes, 'filtro': filtro, 'nome_filter': nome_filter}) 
+    return render(request, 'listarComponentes.html', {'componentes': componentes, 'filtro': filtro, 'nome_filtro': nome_filtro}) 
 
 
 
@@ -689,16 +694,16 @@ def listarMaoDeObra(request):
         # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
         return redirect('login')
 
-    nome_filter = request.GET.get('nome', '')
+    nome_filtro = request.GET.get('nome', '')
     order_by = request.GET.get('order_by', '')  # Novo parâmetro para ordenação
 
     # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM listar_mao_de_obra(%s, %s)", [nome_filter, order_by])
+        cursor.execute("SELECT * FROM listar_mao_de_obra(%s, %s)", [nome_filtro, order_by])
         maoObra = cursor.fetchall()
         
     # Passar os dados para o template
-    return render(request, 'listarMaoDeObra.html', {'maoObra': maoObra, 'nome_filter': nome_filter, 'order_by': order_by})
+    return render(request, 'listarMaoDeObra.html', {'maoObra': maoObra, 'nome_filtro': nome_filtro, 'order_by': order_by})
 
 
 
@@ -864,9 +869,12 @@ def RegistarEquipamentos(request):
 
                     with connection.cursor() as cursorID:
                         # Chama a stored procedure com um parâmetro OUT
-                        cursorID.execute('SELECT TOP 1 * FROM equipamentos ORDER BY id_equipamentos DESC')
+                        cursorID.execute('SELECT * FROM equipamentos ORDER BY id_equipamentos DESC LIMIT 1')
+                        ultimo_equipamento = cursorID.fetchone()
 
-                        RegistarEquipamentosMongo(cursorID,nome,descricao,modelo,desconto)
+                        id_equipamento = ultimo_equipamento[0]
+                        RegistarEquipamentosMongo(id_equipamento, nome, descricao, modelo, desconto)
+
 
                     messages.success(request, 'Equipamento adicionado com sucesso.')
                     return redirect('listarEquipamentos')
@@ -877,17 +885,12 @@ def RegistarEquipamentos(request):
     return render(request, 'AdicionarEquipamentos.html', {'form': form})
 
 
-# regista um novo utilizador
-@login_required(login_url='/login/') 
-def RegistarEquipamentosMongo(nome, descricao, modelo, desconto):
-           
+# regista Equipamneto Mongo
+def RegistarEquipamentosMongo(id_equipamento, nome, descricao, modelo, desconto):
     mongo_db = conexaomongo
     colecaoEquipamentos = mongo_db["Equipamentos"]
-    documento = {"nome": nome,"descricao": descricao, "modelo": modelo, "desconto": float(desconto)}
+    documento = {"idEquipamento": id_equipamento, "nome": nome, "descricao": descricao, "modelo": modelo, "comp": [], "stock": 0, "preco": 0, "desconto": float(desconto), "estado": 'Ativo', "disponivel": False}
     colecaoEquipamentos.insert_one(documento)
-
-
-
 
 
 
@@ -900,10 +903,32 @@ def associarCompEquip(request, id):
 
     if request.method == 'POST':
         componente_id = request.POST.get('componente_id')
+        componentes_para_mongo = []
 
         # Chama o procedimento de associação
         with connection.cursor() as cursor:
             cursor.execute('CALL associar_equipamento_componente(%s, %s)', [id, componente_id])
+
+            # Consulta para obter os componentes associados ao equipamento
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT c.nome, c.referencia, ec.quantidade
+                    FROM componentes c
+                    JOIN equipamentos_componentes ec ON c.componentes_id = ec.id_componente
+                    WHERE ec.id_equipamento = %s
+                """, [id])
+                componentes_mongo = cursor.fetchall()
+
+                for componente in componentes_mongo:  # Corrige o nome da variável
+                    nome, referencia, quantidade = componente
+                    componente_info = {
+                        'nome': nome,
+                        'referencia': referencia,
+                        'quantidade': quantidade
+                    }
+                    componentes_para_mongo.append(componente_info)
+
+                PopularComponenteEquipamentosMongo(id, componentes_para_mongo)
         
         messages.success(request, 'Componente associado com sucesso.')
 
@@ -931,6 +956,21 @@ def associarCompEquip(request, id):
 
 
 
+def PopularComponenteEquipamentosMongo(id_equipamento, componentes_para_mongo):
+    mongo_db = conexaomongo
+    colecaoEquipamentos = mongo_db["Equipamentos"]
+    
+    # Filtro para encontrar o documento com o id_equipamento correspondente
+    filtro = {"idEquipamento": id_equipamento}
+    
+    # Atualiza o documento, definindo o novo valor para o array comp
+    atualizacao = {"$set": {"comp": componentes_para_mongo}}
+    
+    # Atualiza o documento na coleção de Equipamentos
+    colecaoEquipamentos.update_one(filtro, atualizacao)
+
+
+
 @login_required(login_url='/login/') 
 def desassociarComponente(request, id_equipamento, id_componente):
     tipo_user = request.session.get('tipo_user', None)
@@ -941,6 +981,28 @@ def desassociarComponente(request, id_equipamento, id_componente):
     # Lógica para desassociar o componente
     with connection.cursor() as cursor:
         cursor.execute('CALL desassociar_equipamento_componente(%s, %s)', [id_equipamento, id_componente])
+
+        componentes_para_mongo = []
+        # Consulta para obter os componentes associados ao equipamento
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT c.nome, c.referencia, ec.quantidade
+                FROM componentes c
+                JOIN equipamentos_componentes ec ON c.componentes_id = ec.id_componente
+                WHERE ec.id_equipamento = %s
+            """, [id_equipamento])
+            componentes_mongo = cursor.fetchall()
+
+            for componente in componentes_mongo:  # Corrige o nome da variável
+                nome, referencia, quantidade = componente
+                componente_info = {
+                    'nome': nome,
+                    'referencia': referencia,
+                    'quantidade': quantidade
+                }
+                componentes_para_mongo.append(componente_info)
+
+        PopularComponenteEquipamentosMongo(id_equipamento, componentes_para_mongo)
 
     messages.success(request, 'Componente desassociado com sucesso.')
     
@@ -1005,6 +1067,12 @@ def desativarEquipamento(request, id_equipamento):
     with connection.cursor() as cursor:
         cursor.execute('CALL desativarEquipamento(%s)', [id_equipamento])
 
+    mongo_db = conexaomongo
+    colecaoEquipamentos = mongo_db["Equipamentos"]
+    filtro = {"idEquipamento": id_equipamento}
+    atualizacao = {"$set": {"estado":'Inativo', "disponivel": False}}
+    colecaoEquipamentos.update_one(filtro, atualizacao)
+
     messages.success(request, 'Equipamento Desativado.')
 
     # Passar os dados para o template
@@ -1023,6 +1091,12 @@ def ativarEquipamento(request, id_equipamento):
     with connection.cursor() as cursor:
         cursor.execute('CALL ativarEquipamento(%s)', [id_equipamento])
 
+    mongo_db = conexaomongo
+    colecaoEquipamentos = mongo_db["Equipamentos"]
+    filtro = {"idEquipamento": id_equipamento}
+    atualizacao = {"$set": {"estado":'Ativo'}}
+    colecaoEquipamentos.update_one(filtro, atualizacao)
+
     messages.success(request, 'Equipamento Ativado.')
 
     # Passar os dados para o template
@@ -1039,6 +1113,12 @@ def indisponivelEquipamento(request, id_equipamento):
     # Lógica para desassociar o componente
     with connection.cursor() as cursor:
         cursor.execute('CALL indisponivelEquipamento(%s)', [id_equipamento])
+
+    mongo_db = conexaomongo
+    colecaoEquipamentos = mongo_db["Equipamentos"]
+    filtro = {"idEquipamento": id_equipamento}
+    atualizacao = {"$set": {"disponivel":False}}
+    colecaoEquipamentos.update_one(filtro, atualizacao)
 
     messages.success(request, 'Equipamento Indisponivel.')
 
@@ -1057,6 +1137,12 @@ def disponivelEquipamento(request, id_equipamento):
     # Lógica para desassociar o componente
     with connection.cursor() as cursor:
         cursor.execute('CALL disponivelEquipamento(%s)', [id_equipamento])
+
+    mongo_db = conexaomongo
+    colecaoEquipamentos = mongo_db["Equipamentos"]
+    filtro = {"idEquipamento": id_equipamento}
+    atualizacao = {"$set": {"disponivel":True}}
+    colecaoEquipamentos.update_one(filtro, atualizacao)
 
     messages.success(request, 'Equipamento Disponivel.')
 
@@ -1079,6 +1165,12 @@ def adicionarPreco(request, id_equipamento):
                 with connection.cursor() as cursor:
                      # Chama a stored procedure com um parâmetro OUT
                     cursor.execute('CALL adicionar_equipamento_preco(%s, %s::MONEY)', [id_equipamento, preco])
+
+                    mongo_db = conexaomongo
+                    colecaoEquipamentos = mongo_db["Equipamentos"]
+                    filtro = {"idEquipamento": id_equipamento}
+                    atualizacao = {"$set": {"preco":preco}}
+                    colecaoEquipamentos.update_one(filtro, atualizacao)
 
                     messages.success(request, 'Preço adicionado com sucesso.')
                     return redirect('listarEquipamentos')
@@ -1160,4 +1252,40 @@ def cancelar_ordem(request, ordem_id):
     # Redirecione de volta à página de associação
     return redirect('listarOrdensProducao')
 
+
+    
+
+#Mostrar Fornecedores
+@login_required(login_url='/login/') 
+def listarClientes(request):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+    
+    nome_filtro = request.GET.get('nome', '')
+
+    # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM listar_clientes(%s)",[nome_filtro])
+        clientes = cursor.fetchall()
+        
+    # Passar os dados para o template
+    return render(request, 'listaClientes.html', {'clientes': clientes, 'nome_filtro': nome_filtro})
+
+
+
+
+
+
+
+
+#Listar Equiapmentos Cliente
+@login_required(login_url='/login/') 
+def listarEquipamentosMongo(request):
+    mongo_db = conexaomongo
+    colecaoEquipamentos = mongo_db["Equipamentos"]
+    equipamentos = colecaoEquipamentos.find({"estado": "Ativo", "disponivel": True}, {"_id": 0})
+    return render(request, 'MostrarEquipamentosMongo.html', {'equipamentos': equipamentos})
 

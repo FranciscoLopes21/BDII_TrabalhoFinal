@@ -20,17 +20,16 @@
 {% block content %}
 
 <div class="navbar">
-    
-    <a href="{% url 'home' %}">Loja</a>
-    <a href="{% url 'registar' %}">
-        <i class="fa-solid fa-right-to-bracket"></i> Entrar</a>
+    <a href="">
+        <i class="fa-solid fa-list"></i> Lista de compras
     </a>
-    <a href="{% url 'login' %}">
-        <i class="fa-regular fa-user"></i>
-        Login
+    <a href="">
+        <i class="fa-solid fa-sack-dollar"></i> Carrinho
+    </a>
+    <a href="{% url 'logout' %}">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
     </a>
 </div>
-
 
 
 <div class="box">
@@ -80,7 +79,7 @@
             <td>{{result.estado}}</td>
             <td>{{result.disponivel}}</td>
             <td>
-                <a href="{% url 'login' %}"><input class="button" type="submit" value="Comprar"/></a>
+                <a href=""><input class="button" type="submit" value="Comprar"/></a>
                 <a href=""><input class="button-outline" type="submit" value="Ver componentes"/></a>
             </td>
         </tr>

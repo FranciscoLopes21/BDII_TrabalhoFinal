@@ -59,6 +59,12 @@ urlpatterns = [
     path('cancelar_ordem/<int:ordem_id>/', views.cancelar_ordem, name='cancelar_ordem'),
 
 
+    path('listarClientes/', views.listarClientes, name='listarClientes'),
+
+
+    #Cliente
+    path('listarEquipamentosMongo/', views.listarEquipamentosMongo, name='listarEquipamentosMongo'),
+
 
 ]
 
