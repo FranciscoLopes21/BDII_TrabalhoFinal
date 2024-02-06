@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS public.users
     password character varying COLLATE pg_catalog."default" NOT NULL,
     tipo_user character varying COLLATE pg_catalog."default" NOT NULL,
     CONSTRAINT users_pkey PRIMARY KEY (user_id)
-)
+);
 
 CREATE TABLE Fornecedores (
     fornecedor_id SERIAL PRIMARY KEY,

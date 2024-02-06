@@ -60,5 +60,8 @@ urlpatterns = [
 
 
 
+    #Cliente
+    path('listarEquipamentosMongo/', views.listarEquipamentosMongo, name='listarEquipamentosMongo'),
+
 ]
 
