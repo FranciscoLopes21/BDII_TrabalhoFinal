@@ -37,7 +37,7 @@
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
     <a href="{% url 'listarOrdensProducao' %}">
-        <i class="fa-solid fa-right-from-bracket"></i>Ordens de Pordução
+        <i class="fa-solid fa-hammer"></i>Ordens de Pordução
     </a>
     <a href="{% url 'logout' %}">
         <i class="fa-solid fa-right-from-bracket"></i>Logout
@@ -56,18 +56,30 @@
         <div class="action">
             <h2>Todos os Fornecedores</h2>
             <br>
-            <a href="{% url 'adicionarFornecedor' %}" style="float: right;">
-                <input class="button" type="submit" value="Adicionar Fornecedor" />
-            </a>
-            <div class="filter-form">
-                <form method="GET" action="{% url 'listarFornecedor' %}">
-                    <label for="nome">Filtrar por Nome:</label>
-                    <input type="text" class="form-control" name="nome" id="nome" value="{{ request.GET.nome }}">
-                    <input class="button" type="submit" value="Filtrar" />
-                </form>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="filter-form">
+                    <form method="GET" action="{% url 'listarFornecedor' %}">
+                        <label for="nome">Filtrar por Nome:</label>
+                        <input type="text" class="form-control" name="nome" id="nome" value="{{ request.GET.nome }}">
+                        <input class="button" type="submit" value="Filtrar" />
+                    </form>
+                </div>
+                <a href="{% url 'adicionarFornecedor' %}" class="button" style="text-decoration: none;">
+                    <i class="fa-solid fa-plus"></i>Adicionar Fornecedor
+                </a>
+            </div>
+            <br>
+            <br>
+            <div>
+                <a href="{% url 'listarFornecedor' %}" class="button" style="text-decoration: none; margin-right: 10px;">
+                    <i class="fa-solid fa-filter-circle-xmark"></i>
+                </a>
+                <a href="{% url 'listarFornecedor' %}?status=Ativo" class="button" style="text-decoration: none; margin-right: 10px;">Ativos
+                </a>
+                <a href="{% url 'listarFornecedor' %}?status=Inativo" class="button" style="text-decoration: none;">Inativos
+                </a>
             </div>
         </div>
-        <br>
         <table>
             <tr>
                 <th>Id</th> 
@@ -75,6 +87,7 @@
                 <th>Morada</th> 
                 <th>Contacto</th> 
                 <th>Email</th> 
+                <th>Estado</th> 
             </tr>
             {% for result in fornecedores%}
             <tr>
@@ -83,9 +96,14 @@
                 <td>{{result.2}}</td>
                 <td>{{result.3}}</td>
                 <td>{{result.4}}</td>
+                <td>{{result.5}}</td>
                 <td>
-                    <a href="{{result.1}}/"><input class="button" type="submit" value="Alterar"/></a>
-                    <a href="Delete/{{result.0}}/"><input class="button-outline" type="submit" value="Remover"/></a>
+                    {% if result.5 == 'Ativo' %} 
+                    <a href="{% url 'editar_fornecedor' id_fornecedor=result.0 %}"><input class="button" type="submit" value="Editar"/></a>
+                    <a href="{% url 'desativarFornecedores' id_fornecedor=result.0 %}"><input class="button-outline" type="submit" value="Desativar"/></a>
+                    {% elif result.5 == 'Inativo' %}
+                    <a href="{% url 'ativarFornecedores' id_fornecedor=result.0 %}"><input class="button-outline" type="submit" value="Ativar"/></a>
+                    {% endif %}
                 </td>
             </tr> 
             {% endfor %}

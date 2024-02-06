@@ -69,7 +69,7 @@ class formularioAdicionarComponentes(forms.Form):
         label='Stock Minimo'
     )
     fornecedor = forms.ChoiceField(choices=[], required=False)#choices=fornecedor,
-    categoria = forms.IntegerField(required=False)
+    categoria = forms.CharField(required=False)
     preco = forms.DecimalField(
         max_digits=10,  # Define o número máximo de dígitos no preço
         decimal_places=2,  # Define o número de casas decimais
@@ -107,7 +107,12 @@ class formualarioRegistoEquipamentos(forms.Form):
         label='Desconto %'
     )
 
-
+class formualarioAdicionarPreco(forms.Form):
+    preco = forms.DecimalField(
+        max_digits=10,  # Define o número máximo de dígitos no preço
+        decimal_places=2,  # Define o número de casas decimais
+    )
+    
 
 class formularioCriarOrdemPorducao(forms.Form):
     quant = forms.CharField(

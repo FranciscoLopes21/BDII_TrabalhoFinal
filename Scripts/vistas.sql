@@ -14,7 +14,8 @@ SELECT
     e.modelo AS modelo_equipamento,
     op.id_maoObra,
     m.nome AS nome_maoObra,
-    m.preco AS preco_maoObra,
+    op.preco_maoObra,  -- Utiliza a nova coluna preco_maoObra
+    op.preco_componentes,  -- Utiliza a nova coluna preco_componentes
     op.quantidade,
     op.preco_total,
     op.estado
@@ -27,17 +28,21 @@ JOIN
 
 
 -- Mostrar encomendas
-CREATE OR REPLACE VIEW public.vista_encomendas
- AS
- SELECT e.id_encomenda,
-    c.referencia,
+CREATE OR REPLACE VIEW encomendas_pendentes AS
+SELECT
+    e.id_encomenda,
+    f.nome AS nome_fornecedor,
+    c.referencia AS referencia_componente,
     e.quantidade,
+    c.preco AS preco_componente,
     e.preco_final,
     e.data_encomenda,
     e.estado
-   FROM encomendas e
-     JOIN componentes c ON e.id_componente = c.componentes_id;
+FROM
+    encomendas e
+    JOIN componentes c ON e.id_componente = c.componentes_id
+    JOIN fornecedores f ON e.id_fornecedor = f.fornecedor_id
+WHERE
+    e.estado = 'Pendente';
 
-ALTER TABLE public.vista_encomendas
-    OWNER TO postgres;
 

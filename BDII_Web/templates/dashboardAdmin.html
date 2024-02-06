@@ -32,7 +32,7 @@
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
     <a href="{% url 'listarOrdensProducao' %}">
-        <i class="fa-solid fa-right-from-bracket"></i>Ordens de Pordução
+        <i class="fa-solid fa-hammer"></i>Ordens de Pordução
     </a>
     <a href="{% url 'logout' %}">
         <i class="fa-solid fa-right-from-bracket"></i>Logout
@@ -75,20 +75,20 @@
     {% endif %}
     <br>
     <h2>Encomendas Pendentes</h2>
-    {% if componentes_em_falta %}
+    {% if encomedas %}
         <br>
         <table>
             <tr>
-                <th>Id</th> 
-                <th>Nome</th> 
+                <th>N guia</th> 
+                <th>Fornecedor</th> 
                 <th>Referencia</th> 
                 <th>Quantidade</th> 
-                <th>Stock Minimo</th> 
-                <th>Fornecedor</th> 
-                <th>Categoria</th> 
-                <th>Preço</th> 
+                <th>Un €</th> 
+                <th>Pago</th> 
+                <th>Data encomenda</th> 
+                <th>Estado</th> 
             </tr>
-            {% for result in componentes_em_falta %}
+            {% for result in encomedas %}
                 <tr>
                     <td>{{result.0}}</td>
                     <td>{{result.1}}</td>
@@ -97,16 +97,15 @@
                     <td>{{result.4}}</td>
                     <td>{{result.5}}</td>
                     <td>{{result.6}}</td>
-                    <td>{{result.7}}</td>
                     <td>
-                        <a href=""><input class="button" type="submit" value="Validar"/></a>
-                        <a href=""><input class="button-outline" type="submit" value="Cancelar"/></a>
+                        <a href="{% url 'download_json' result.0 %}" class="button"><i class="fa-solid fa-file-lines"></i></a>
+                        <a href="{% url 'entregarEncomenda' id_encomenda=result.0 %}"><input class="button-outline" type="submit" value="Chegou" /></a>
                     </td>
                 </tr> 
             {% endfor %}
         </table>
     {% else %}
-        <h2 class="text">Não existem componentes em falta</h2>
+        <h2 class="text">Não existem encomendas</h2>
     {% endif %}
 </div>
 

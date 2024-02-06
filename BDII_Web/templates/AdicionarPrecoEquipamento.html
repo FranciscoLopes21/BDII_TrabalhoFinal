@@ -153,33 +153,9 @@
         </div>
     {% endif %}
 
-    <h3>Adicionar Componentes</h3>
+    <h3>Adicionar Equipamentos</h3>
     <form action="" method="POST">
         {% csrf_token %}
-        <div class="form-group">
-            {{ form.nome.label_tag }}
-            {{ form.nome }}
-        </div>
-        <div class="form-group">
-            {{ form.referencia.label_tag }}
-            {{ form.referencia }}
-        </div>
-        <div class="form-group">
-            {{ form.quant.label_tag }}
-            {{ form.quant }}
-        </div>
-        <div class="form-group">
-            {{ form.stockMin.label_tag }}
-            {{ form.stockMin }}
-        </div>
-        <div class="form-group">
-            {{ form.fornecedor.label_tag }}
-            {{ form.fornecedor }}
-        </div>
-        <div class="form-group">
-            {{ form.categoria.label_tag }}
-            {{ form.categoria }}
-        </div>
         <div class="form-group">
             {{ form.preco.label_tag }}
             {{ form.preco }}
@@ -187,6 +163,7 @@
         <br>
         <input class="submit-btn" type="submit" value="Registar"/>
     </form>
+    
 </div>
 
 {% endblock content %}

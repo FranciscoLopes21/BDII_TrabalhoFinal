@@ -37,13 +37,12 @@
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
     <a href="{% url 'listarOrdensProducao' %}">
-        <i class="fa-solid fa-right-from-bracket"></i>Ordens de Pordução
+        <i class="fa-solid fa-hammer"></i>Ordens de Pordução
     </a>
     <a href="{% url 'logout' %}">
         <i class="fa-solid fa-right-from-bracket"></i>Logout
     </a>
 </div>
-
 <div class="box">
         
     <div class="container">
@@ -120,8 +119,8 @@
                 {% if result.10 == 'Produção' %}
                 <a href="{% url 'concluir_ordem' ordem_id=result.0 %}" class="button" style="text-decoration: none;">Concluir</a>
                 <a href="{% url 'cancelar_ordem' ordem_id=result.0 %}" class="button-outline" style="text-decoration: none;">Cancelar</a>
-            {% else %}
-            {% endif %}
+                {% else %}
+                {% endif %}
             </td>
         </tr>
         {% endfor %}

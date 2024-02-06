@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db import connection
-from .forms import formularioRegisto, formualarioRegistoEquipamentos, formularioLogin, formularioAdiconarFornecedor, formularioAdiconarMaoObra, formularioAdicionarComponentes, formularioAdiconarEncomenda, formularioCriarOrdemPorducao
+from .forms import formularioRegisto, formualarioRegistoEquipamentos, formularioLogin, formularioAdiconarFornecedor, formularioAdiconarMaoObra, formularioAdicionarComponentes, formularioAdiconarEncomenda, formularioCriarOrdemPorducao, formualarioAdicionarPreco
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import login, authenticate
@@ -16,7 +16,8 @@ from django.http import JsonResponse, HttpResponse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.db import connection
+from django.db import connection, InternalError
+from django.db import IntegrityError
 
 # Create your views here.
 def home(request):
@@ -174,14 +175,25 @@ def dashBoardAdmin(request):
     # Verificar se existem componentes por validar
     tem_componentes_em_falta = bool(componentes_em_falta)
 
+    # Consulta ao banco de dados para obter as componentes por validar
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM encomendas_pendentes")
+        encomedas = cursor.fetchall()
+
+    # Verificar se existem componentes por validar
+    tem_encomedas = bool(encomedas)
+
     # Passar os dados para o template
-    return render(request, 'dashboardAdmin.html', {'tem_componentes_em_falta': tem_componentes_em_falta, 'componentes_em_falta': componentes_em_falta})
+    return render(request, 'dashboardAdmin.html', {'tem_componentes_em_falta': tem_componentes_em_falta, 'componentes_em_falta': componentes_em_falta, 
+                                                   'tem_encomedas':tem_encomedas, 'encomedas':encomedas})
     
 
 
 
 
 
+
+#Fornecedores
 
 #Mostrar Fornecedores
 @login_required(login_url='/login/') 
@@ -193,15 +205,18 @@ def listarFornecedores(request):
         return redirect('login')
 
     nome_filter = request.GET.get('nome', '')  # Obtém o valor do filtro de nome
+    estado_filter = request.GET.get('status', '')  # Obtém o valor do filtro de estado
 
-    # Consulta ao banco de dados para obter fornecedores com base no filtro de nome
+    # Consulta ao banco de dados para obter fornecedores com base nos filtros
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM listar_fornecedores(%s)", [nome_filter])
+        cursor.execute(
+            "SELECT * FROM listar_fornecedores(%s, %s)",
+            [nome_filter, estado_filter]
+        )
         fornecedores = cursor.fetchall()
 
     # Passar os dados para o template
-    return render(request, 'listaFornecedores.html', {'fornecedores': fornecedores, 'nome_filter': nome_filter})
-
+    return render(request, 'listaFornecedores.html', {'fornecedores': fornecedores, 'nome_filter': nome_filter, 'estado_filter': estado_filter})
 
 # adicionar fornecedor 
 @login_required(login_url='/login/') 
@@ -243,78 +258,90 @@ def adicionarFornecedor(request):
 
     return render(request, 'AdicionarFornecedor.html', {'form': form})
 
-
-#Mostrar Fornecedores
+# editar fornecedor 
 @login_required(login_url='/login/') 
-def eleminarFornecedores(request, forn):
+def editar_fornecedor(request, id_fornecedor):
+    # Verificar se o usuário é do tipo "admin" usando a informação armazenada na sessão
     tipo_user = request.session.get('tipo_user', None)
 
     if tipo_user != 'admin':
         # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
         return redirect('login')
 
-    # Consulta ao banco de dados para obter todos os fornecedores
+    elif  tipo_user == 'admin':
+
+        # Buscar o fornecedor com base no ID fornecido
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT * FROM fornecedores WHERE fornecedor_id = %s', [id_fornecedor])
+            fornecedor_data = cursor.fetchone()
+
+        if request.method == 'POST':
+            form = formularioAdiconarFornecedor(request.POST)
+            if form.is_valid():
+                nome = form.cleaned_data["nome"]
+                morada = form.cleaned_data["morada"]
+                contacto = form.cleaned_data["contacto"]
+                email = form.cleaned_data["email"]
+
+                # Lógica para desassociar o componente
+                with connection.cursor() as cursor:
+                    cursor.execute('SELECT editar_fornecedor(%s, %s, %s, %s, %s)', [
+                        id_fornecedor, nome, morada, contacto, email]
+                        )
+                    
+                messages.success(request, 'Fornecedor Editado.')
+
+                # Passar os dados para o template
+                return redirect('listarFornecedor')
+
+        else:
+            form = formularioAdiconarFornecedor(initial={
+            'nome': fornecedor_data[1],
+            'morada': fornecedor_data[2],
+            'contacto': fornecedor_data[3],
+            'email': fornecedor_data[4]
+        })
+
+    return render(request, 'AdicionarFornecedor.html', {'form': form})
+
+#Mostrar Fornecedores
+@login_required(login_url='/login/') 
+def desativarFornecedores(request, id_fornecedor):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Lógica para desassociar o componente
     with connection.cursor() as cursor:
-        cursor.execute("DELETE FROM Fornecedores WHERE fornecedor_id = %s", [forn])
+        cursor.execute('CALL desativarFornecedores(%s)', [id_fornecedor])
+
+    messages.success(request, 'Fornecedor Desativado.')
+
+    # Passar os dados para o template
+    return redirect('listarFornecedor')
+
+#Ativar fornecedor
+@login_required(login_url='/login/') 
+def ativarFornecedores(request, id_fornecedor):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Lógica para desassociar o componente
+    with connection.cursor() as cursor:
+        cursor.execute('CALL ativarFornecedores(%s)', [id_fornecedor])
+
+    messages.success(request, 'Fornecedor Desativado.')
 
     # Passar os dados para o template
     return redirect('listarFornecedor')
 
 
-#Mostrar Fornecedores
-@login_required(login_url='/login/') 
-def listarMaoDeObra(request):
-    tipo_user = request.session.get('tipo_user', None)
 
-    if tipo_user != 'admin':
-        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
-        return redirect('login')
-
-    nome_filter = request.GET.get('nome', '')
-    order_by = request.GET.get('order_by', '')  # Novo parâmetro para ordenação
-
-    # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM listar_mao_de_obra(%s, %s)", [nome_filter, order_by])
-        maoObra = cursor.fetchall()
-        
-    # Passar os dados para o template
-    return render(request, 'listarMaoDeObra.html', {'maoObra': maoObra, 'nome_filter': nome_filter, 'order_by': order_by})
-
-
-
-# adicionar fornecedor 
-@login_required(login_url='/login/') 
-def adicionarMaoObra(request):
-    # Verificar se o user é do tipo "admin" usando a informação armazenada na sessão
-    tipo_user = request.session.get('tipo_user', None)
-
-    if tipo_user != 'admin':
-        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
-        return redirect('login')
-    elif  tipo_user == 'admin':
-        if request.method == 'POST':
-            form = formularioAdiconarMaoObra(request.POST)
-            if form.is_valid():
-                nome = form.cleaned_data["nome"]
-                preco = form.cleaned_data["preco"]
-
-                # Continuação do seu código para inserir o usuário na tabela 'users'
-                with connection.cursor() as cursor:
-                    # Exemplo de inserção
-                    cursor.execute(
-                        "INSERT INTO maoObra (nome, preco) VALUES (%s, %s)",
-                        [nome, preco]
-                    )
-
-                    messages.success(request, 'Mão de obra adicionada com sucesso.')
-                    # Redirecionar para a página inicial room
-                    return redirect('listarMaoDeObra')
-
-        else:
-            form = formularioAdiconarMaoObra()
-
-    return render(request, 'AdicionarMaoDeObra.html', {'form': form})
 
 
 #Mostrar Fornecedores
@@ -328,26 +355,19 @@ def listarComponentes(request):
         return redirect('login')
 
 
-    filtro = request.GET.get('filtro', None)
+    filtro = request.GET.get('filtro', '')
+    nome_filter = request.GET.get('referencia', '')  # Obtém o valor do filtro de nome
 
+    # Consulta ao banco de dados para obter fornecedores com base nos filtros
     with connection.cursor() as cursor:
-        if filtro == 'em_falta':
-            cursor.execute("""
-                SELECT c.componentes_id, c.nome, c.referencia, c.quant, c.stockMinimo, f.nome as nome_fornecedor, c.categoria, c.preco
-                FROM componentes c
-                JOIN fornecedores f ON c.fornecedor_id = f.fornecedor_id
-                WHERE c.stockMinimo > c.quant
-            """)
-        else:
-            cursor.execute("""
-                SELECT c.componentes_id, c.nome, c.referencia, c.quant, c.stockMinimo, f.nome as nome_fornecedor, c.categoria, c.preco
-                FROM componentes c
-                JOIN fornecedores f ON c.fornecedor_id = f.fornecedor_id
-            """)
-
+        cursor.execute(
+            "SELECT * FROM listar_componentes(%s, %s)",
+            [filtro, nome_filter]
+        )
         componentes = cursor.fetchall()
 
-    return render(request, 'listarComponentes.html', {'componentes': componentes})   
+    return render(request, 'listarComponentes.html', {'componentes': componentes, 'filtro': filtro, 'nome_filter': nome_filter}) 
+
 
 
 #Mostrar Fornecedores
@@ -362,7 +382,7 @@ def adicionarComponentes(request):
     
         # Consulta ao banco de dados para obter os fornecedores
     with connection.cursor() as cursor:
-        cursor.execute("SELECT fornecedor_id, nome FROM fornecedores")
+        cursor.execute("SELECT fornecedor_id, nome FROM fornecedores where estado like 'Ativo' ")
         lista_fornecedores = cursor.fetchall()
 
     # Configurar as opções do campo fornecedor
@@ -382,7 +402,7 @@ def adicionarComponentes(request):
             # Continuação do seu código para inserir o componente na tabela 'componentes'
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO componentes (nome, referencia, quant, stockMinimo, fornecedor_id, categoria, preco) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    "CALL adicionar_componente(%s, %s, %s::INTEGER, %s::INTEGER, %s::INTEGER, %s, %s::MONEY)",
                     [nome, referencia, quant, stockMin, fornecedor_id, categoria, preco]
                 )
 
@@ -396,6 +416,105 @@ def adicionarComponentes(request):
 
 
     return render(request, 'AdicionarComponentes.html', {'form': form})   
+
+
+# editar fornecedor 
+@login_required(login_url='/login/') 
+def editar_componentes(request, id_componente):
+    # Verificar se o usuário é do tipo "admin" usando a informação armazenada na sessão
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    elif tipo_user == 'admin':
+        # Buscar o componente com base no ID componente
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT * FROM componentes WHERE componentes_id = %s', [id_componente])
+            componente_data = cursor.fetchone()
+        # Buscar a lista de fornecedores ativos
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT fornecedor_id, nome FROM fornecedores where estado like 'Ativo' ")
+            lista_fornecedores = cursor.fetchall()
+
+        # Configurar as opções do campo fornecedor
+        choices = [(f[0], f[1]) for f in lista_fornecedores]
+        if request.method == 'POST':
+            form = formularioAdicionarComponentes(request.POST)
+            form.fields['fornecedor'].choices = choices  # Atualizar as opções do fornecedor no caso de falha na validação
+
+            if form.is_valid():
+                nome = form.cleaned_data["nome"]
+                referencia = form.cleaned_data["referencia"]
+                quant = form.cleaned_data["quant"]
+                stockMin = form.cleaned_data["stockMin"]
+                fornecedor_id = form.cleaned_data["fornecedor"]
+                categoria = form.cleaned_data["categoria"]
+                preco = form.cleaned_data["preco"]
+                # Lógica para editar o componente
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        'SELECT editar_componente(%s::INTEGER, %s, %s, %s::INTEGER, %s::INTEGER, %s::INTEGER, %s, %s::MONEY)',
+                        [id_componente, nome, referencia, quant, stockMin, fornecedor_id, categoria, preco]
+                    )
+
+                messages.success(request, 'Componente Editado.')
+
+                # Redirecionar para a página de listagem de componentes
+                return redirect('listarComponentes')
+
+        else:
+            # Inicializar o formulário com os dados do componente e as opções do fornecedor
+            form = formularioAdicionarComponentes(initial={
+                'nome': componente_data[1],
+                'referencia': componente_data[2],
+                'quant': componente_data[3],
+                'stockMin': componente_data[4],
+                'fornecedor': componente_data[5],
+                'categoria': componente_data[6],
+                'preco': float(componente_data[7].replace('€', '').replace(',', '.'))
+            })
+            form.fields['fornecedor'].choices = choices
+
+    return render(request, 'AdicionarComponentes.html', {'form': form})
+
+
+#Mostrar Fornecedores
+@login_required(login_url='/login/') 
+def desativarComponente(request, id_componente):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Lógica para desassociar o componente
+    with connection.cursor() as cursor:
+        cursor.execute('CALL desativarComponente(%s)', [id_componente])
+
+    messages.success(request, 'Componente Desativado.')
+
+    # Passar os dados para o template
+    return redirect('listarComponentes')
+
+#Ativar fornecedor
+@login_required(login_url='/login/') 
+def ativarComponente(request, id_componente):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Lógica para desassociar o componente
+    with connection.cursor() as cursor:
+        cursor.execute('CALL ativarComponente(%s)', [id_componente])
+
+    messages.success(request, 'Componente Ativado.')
+
+    # Passar os dados para o template
+    return redirect('listarComponentes')
 
 
 # adicionar fornecedor 
@@ -460,6 +579,8 @@ def enomendarComponentes(request, id):
 
 
 
+
+
 @login_required(login_url='/login/') 
 def listarEncomendas(request):
 
@@ -469,12 +590,21 @@ def listarEncomendas(request):
         # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
         return redirect('login')
 
+    id_encomenda_filter = request.GET.get('id_encomenda', '')  # Obtenha o valor do filtro de ID da encomenda
+    estado_filter = request.GET.get('status', '')  # Obtenha o valor do filtro de estado
+
+    # Verificar se id_encomenda_filter não está vazio antes de converter para inteiro
+    id_encomenda_filter = int(id_encomenda_filter) if id_encomenda_filter else None
 
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM vista_encomendas")
+        cursor.execute("SELECT * FROM listar_encomendas(%s, %s::INTEGER)",
+            [estado_filter, id_encomenda_filter]
+        )
         encomendas = cursor.fetchall()
 
-    return render(request, 'listaEncomendas.html', {'encomendas': encomendas})   
+    return render(request, 'listaEncomendas.html', {'encomendas': encomendas, 'id_encomenda_filter': id_encomenda_filter, 'estado_filter': estado_filter})
+
+
 
 
 @login_required(login_url='/login/') 
@@ -505,41 +635,184 @@ def download_json(request, id_encomenda):
         # Se não encontrar dados, pode retornar uma resposta indicando isso
         return HttpResponse("Dados da encomenda não encontrados.")
 
-import logging
 
-def importar_json_upload(request):
-    if request.method == 'POST':
-        try:
-            json_file = request.FILES.get('json_file')
-            json_data = json.load(json_file)
 
-            id_encomenda = json_data.get('id_encomenda')
-            guia_encomenda = json_data.get('guia_encomenda')
+@login_required(login_url='/login/') 
+def entregarEncomenda(request, id_encomenda):
+    tipo_user = request.session.get('tipo_user', None)
 
-            logging.info(f'Recebido JSON: {json_data}')
-            logging.info(f"Resultado da função: {result}")
+    if tipo_user != 'admin':
+        return redirect('login')
 
-            # Restante do código...
-        except json.JSONDecodeError:
-            logging.error('Erro ao decodificar JSON')
+    # Lógica para desassociar o componente
+    with connection.cursor() as cursor:
+        cursor.execute('CALL  entregar_encomenda(%s)', [id_encomenda])
 
-            # Chama a função PL/pgSQL para alterar o estado para entregue
-            with connection.cursor() as cursor:
-                cursor.callproc('alterar_estado_entregue', [json.dumps(json_data)])
+    messages.success(request, 'Encomenda entregue.')
+    
+    # Redirecione de volta à página de associação
+    return redirect('listarEncomendas')
 
-                # Captura o resultado da função (pode ser ajustado conforme necessário)
-                result = cursor.fetchone()
 
-            # Verifica o resultado
-            if result and result[0] == '{"status": "success", "message": "Encomenda entregue com sucesso."}':
-                return JsonResponse({'status': 'success', 'message': 'Encomenda entregue com sucesso.'})
-            else:
-                return JsonResponse({'status': 'error', 'message': 'A guia de encomenda não corresponde à encomenda.'})
 
-        except json.JSONDecodeError:
-            return JsonResponse({'status': 'error', 'message': 'Formato JSON inválido.'})
+#Cancelar Encomenda
+@login_required(login_url='/login/') 
+def cancelarEncomenda(request, id_encomenda):
+    tipo_user = request.session.get('tipo_user', None)
 
-    return JsonResponse({'status': 'error', 'message': 'Método não permitido.'})
+    if tipo_user != 'admin':
+        return redirect('login')
+
+    # Lógica para desassociar o componente
+    with connection.cursor() as cursor:
+        cursor.execute('CALL  cancelar_encomenda(%s)', [id_encomenda])
+
+    messages.success(request, 'Encomenda cancelada.')
+    
+    # Redirecione de volta à página de associação
+    return redirect('listarEncomendas')
+
+
+
+
+
+
+#Mostrar Fornecedores
+@login_required(login_url='/login/') 
+def listarMaoDeObra(request):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    nome_filter = request.GET.get('nome', '')
+    order_by = request.GET.get('order_by', '')  # Novo parâmetro para ordenação
+
+    # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM listar_mao_de_obra(%s, %s)", [nome_filter, order_by])
+        maoObra = cursor.fetchall()
+        
+    # Passar os dados para o template
+    return render(request, 'listarMaoDeObra.html', {'maoObra': maoObra, 'nome_filter': nome_filter, 'order_by': order_by})
+
+
+
+# adicionar fornecedor 
+@login_required(login_url='/login/') 
+def adicionarMaoObra(request):
+    # Verificar se o user é do tipo "admin" usando a informação armazenada na sessão
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+    elif  tipo_user == 'admin':
+        if request.method == 'POST':
+            form = formularioAdiconarMaoObra(request.POST)
+            if form.is_valid():
+                nome = form.cleaned_data["nome"]
+                preco = float(form.cleaned_data["preco"])
+
+                # Continuação do seu código para inserir o usuário na tabela 'users'
+                with connection.cursor() as cursor:
+                    # Exemplo de inserção
+                    cursor.execute(
+                        "CALL adicionar_mao_obra(%s, %s::MONEY)",
+                        [nome, preco]
+                    )
+
+
+                    messages.success(request, 'Mão de obra adicionada com sucesso.')
+                    # Redirecionar para a página inicial room
+                    return redirect('listarMaoDeObra')
+
+        else:
+            form = formularioAdiconarMaoObra()
+
+    return render(request, 'AdicionarMaoDeObra.html', {'form': form})
+
+
+
+
+#Editar Mão de Obra
+@login_required(login_url='/login/') 
+def editar_maoObra(request, maoobra_id):
+    # Verificar se o usuário é do tipo "admin" usando a informação armazenada na sessão
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+    elif  tipo_user == 'admin':
+        # Buscar o fornecedor com base no ID fornecido
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT * FROM maoobra WHERE maoobra_id = %s', [maoobra_id])
+            maoObra_data = cursor.fetchone()
+
+        if request.method == 'POST':
+            form = formularioAdiconarMaoObra(request.POST)
+            if form.is_valid():
+                nome = form.cleaned_data["nome"]
+                preco = float(form.cleaned_data["preco"])
+
+                # Lógica para desassociar o componente
+                with connection.cursor() as cursor:
+                    cursor.execute('CALL editar_maoObra(%s, %s, %s::MONEY)', [
+                        maoobra_id, nome, preco]
+                        )
+                    
+                messages.success(request, 'Mão de obra Editado.')
+                # Passar os dados para o template
+                return redirect('listarMaoDeObra')
+        else:
+            form = formularioAdiconarMaoObra(initial={
+            'nome': maoObra_data[1],
+            'preco': float(maoObra_data[2].replace('€', '').replace(',', '.'))
+        })
+
+    return render(request, 'AdicionarMaoDeObra.html', {'form': form}) 
+
+
+    #Mostrar Fornecedores
+@login_required(login_url='/login/') 
+def desativarMaoObra(request, maoobra_id):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Lógica para desassociar o componente
+    with connection.cursor() as cursor:
+        cursor.execute('CALL desativarMaoObra(%s)', [maoobra_id])
+
+    messages.success(request, 'Mão de obra Desativado.')
+
+    # Passar os dados para o template
+    return redirect('listarMaoDeObra')
+
+#Ativar fornecedor
+@login_required(login_url='/login/') 
+def ativarMaoObra(request, maoobra_id):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Lógica para desassociar o componente
+    with connection.cursor() as cursor:
+        cursor.execute('CALL ativarMaoObra(%s)', [maoobra_id])
+
+    messages.success(request, 'Mão de obra Ativado.')
+
+    # Passar os dados para o template
+    return redirect('listarMaoDeObra')
+
+
+
 
 
 #Mostrar Fornecedores
@@ -620,6 +893,7 @@ def associarCompEquip(request, id):
             SELECT c.componentes_id, c.nome, c.referencia, f.nome as nome_fornecedor, c.categoria
             FROM componentes c
             JOIN fornecedores f ON c.fornecedor_id = f.fornecedor_id
+                       WHERE c.estado = 'Ativo'
         """)
         componentes = cursor.fetchall()
 
@@ -678,20 +952,125 @@ def criarOrdemProducao(request, id_equipamento):
             quant = form.cleaned_data["quant"]
             maoDeObra_id = form.cleaned_data["maoDeObra"]
 
-             # Lógica para desassociar o componente
-            with connection.cursor() as cursor:
-                cursor.execute('CALL inserir_ordemproducao(%s, %s, %s)', [id_equipamento, maoDeObra_id, quant])
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute('CALL inserir_ordemproducao(%s, %s, %s)', [id_equipamento, maoDeObra_id, quant])
 
-            messages.success(request, 'Componente adicionado com sucesso.')
-            # Redirecionar para a página inicial room
-            return redirect('listarEquipamentos')
-
+                messages.success(request, 'Ordem de produção criada com sucesso.')
+                return redirect('listarEquipamentos')
+            except InternalError as e:
+                if 'Componente insuficiente para produzir a quantidade desejada' in str(e):
+                    messages.error(request, 'Erro ao criar ordem de produção: Componente insuficiente para produzir a quantidade desejada')
+                else:
+                    messages.error(request, 'Erro ao criar ordem de produção: ' + str(e))
     else:
         form = formularioCriarOrdemPorducao()
         form.fields['maoDeObra'].choices = choices  # Configurar as opções do fornecedor no carregamento inicial
 
 
     return render(request, 'criarOrdemProducao.html', {'form': form})   
+
+
+
+
+@login_required(login_url='/login/') 
+def desativarEquipamento(request, id_equipamento):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Lógica para desassociar o componente
+    with connection.cursor() as cursor:
+        cursor.execute('CALL desativarEquipamento(%s)', [id_equipamento])
+
+    messages.success(request, 'Equipamento Desativado.')
+
+    # Passar os dados para o template
+    return redirect('listarEquipamentos')
+
+
+@login_required(login_url='/login/') 
+def ativarEquipamento(request, id_equipamento):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Lógica para desassociar o componente
+    with connection.cursor() as cursor:
+        cursor.execute('CALL ativarEquipamento(%s)', [id_equipamento])
+
+    messages.success(request, 'Equipamento Ativado.')
+
+    # Passar os dados para o template
+    return redirect('listarEquipamentos')
+
+
+def indisponivelEquipamento(request, id_equipamento):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Lógica para desassociar o componente
+    with connection.cursor() as cursor:
+        cursor.execute('CALL indisponivelEquipamento(%s)', [id_equipamento])
+
+    messages.success(request, 'Equipamento Indisponivel.')
+
+    # Passar os dados para o template
+    return redirect('listarEquipamentos')
+
+
+@login_required(login_url='/login/') 
+def disponivelEquipamento(request, id_equipamento):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Lógica para desassociar o componente
+    with connection.cursor() as cursor:
+        cursor.execute('CALL disponivelEquipamento(%s)', [id_equipamento])
+
+    messages.success(request, 'Equipamento Disponivel.')
+
+    # Passar os dados para o template
+    return redirect('listarEquipamentos')
+
+
+@login_required(login_url='/login/') 
+def adicionarPreco(request, id_equipamento):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        return redirect('login')
+    elif tipo_user == 'admin':
+        if request.method == 'POST':
+            form = formualarioAdicionarPreco(request.POST)
+            if form.is_valid():
+                preco = float(form.cleaned_data["preco"])
+
+                with connection.cursor() as cursor:
+                     # Chama a stored procedure com um parâmetro OUT
+                    cursor.execute('CALL adicionar_equipamento_preco(%s, %s::MONEY)', [id_equipamento, preco])
+
+                    messages.success(request, 'Preço adicionado com sucesso.')
+                    return redirect('listarEquipamentos')
+
+        else:
+            form = formualarioAdicionarPreco()
+
+    return render(request, 'AdicionarPrecoEquipamento.html', {'form': form})
+
+
+
+
 
 
 

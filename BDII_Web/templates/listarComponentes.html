@@ -37,7 +37,7 @@
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
     <a href="{% url 'listarOrdensProducao' %}">
-        <i class="fa-solid fa-right-from-bracket"></i>Ordens de Pordução
+        <i class="fa-solid fa-hammer"></i>Ordens de Pordução
     </a>
     <a href="{% url 'logout' %}">
         <i class="fa-solid fa-right-from-bracket"></i>Logout
@@ -63,26 +63,26 @@
     <div class="action">
         <h2>Todos os Componentes</h2>
         <br>
-        <a href="{% url 'adicionarComponentes' %}" style="float: right;">
-            <input class="button" type="submit" value="Adicionar Componente" />
-        </a>
-
-        <div class="filter-form">
-            <form method="GET" action="{% url 'listarComponentes' %}">
-                <label for="nome">Filtrar por Nome:</label>
-                <input type="text" class="form-control" name="nome" id="nome">
-                <input class="button" type="submit" value="Filtrar" />
-            </form>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="filter-form">
+                <form method="GET" action="{% url 'listarComponentes' %}">
+                    <label for="referencia">Filtrar por Referencia:</label>
+                    <input type="text" class="form-control" name="referencia" id="referencia" value="{{ request.GET.referencia }}">
+                    <input class="button" type="submit" value="Filtrar" />
+                </form>
+            </div>
+            <a href="{% url 'adicionarComponentes' %}" class="button" style="text-decoration: none;">
+                <i class="fa-solid fa-plus"></i>Adicionar Componente
+            </a>
         </div>
-
-        <br>
-        <br>
         
+        <br>
+        <br> 
         <div>
-            <a href="{% url 'listarComponentes' %}" class="button" style="float: left; margin-right: 10px; text-decoration: none;">
+            <a href="{% url 'listarComponentes' %}" class="button" style="text-decoration: none; margin-right: 10px;">
                 <i class="fa-solid fa-filter-circle-xmark"></i>
             </a>
-            <a href="{% url 'listarComponentes' %}?filtro=em_falta" class="button" style="float: left; text-decoration: none;{% if filtro == 'em_falta' %} background-color: yellow; {% endif %}">
+            <a href="{% url 'listarComponentes' %}?filtro=em_falta" class="button" style="text-decoration: none; margin-right: 10px;">
                 <i class="fa-solid fa-minus"></i> Componentes em falta
             </a>
             
@@ -106,6 +106,7 @@
             <th>Fornecedor</th> 
             <th>Categoria</th> 
             <th>Preço</th> 
+            <th>Estado</th> 
         </tr>
         {% for result in componentes%}
         <tr>
@@ -117,12 +118,21 @@
             <td>{{result.5}}</td>
             <td>{{result.6}}</td>
             <td>{{result.7}}</td>
+            <td>{{result.8}}</td>
             <td>
-                <a ><input class="button" type="submit" value="Alterar"/></a>
-                <a ><input class="button-outline" type="submit" value="Remover"/></a>
+                {% if result.8 == 'Ativo' %} 
+                    <a href="{% url 'editar_componentes' id_componente=result.0 %}"><input class="button" type="submit" value="Editar"/></a>
+                    <a href="{% url 'desativarComponente' id_componente=result.0 %}"><input class="button-outline" type="submit" value="Remover"/></a>
+                {% elif result.8 == 'Inativo' %}
+                    <a href="{% url 'ativarComponente' id_componente=result.0 %}"><input class="button-outline" type="submit" value="Ativar"/></a>
+                {% endif %}
             </td>
             <td>
-                <a href="{% url 'enomendarComponentes' id=result.0 %}"><input class="button-outline" type="submit" value="Encomendar"/></a>
+                {% if result.9 == 'Ativo' and result.8 == 'Ativo' %} 
+                    <a href="{% url 'enomendarComponentes' id=result.0 %}"><input class="button-outline" type="submit" value="Encomendar"/></a>
+                {% elif result.5 == 'Inativo' %}
+                {% endif %}
+                
             </td>
         </tr> 
         {% endfor %}

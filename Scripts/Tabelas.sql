@@ -16,13 +16,15 @@ CREATE TABLE Fornecedores (
     nome VARCHAR NOT NULL,
     morada VARCHAR NOT NULL,
     contacto VARCHAR(9) NOT NULL,
-    email VARCHAR NOT NULL
+    email VARCHAR NOT NULL,
+    estado VARCHAR(20)
 );
 
 CREATE TABLE maoObra (
     maoObra_id SERIAL PRIMARY KEY,
     nome VARCHAR NOT NULL,
     preco MONEY  NOT NULL
+    estado character varying(20) NOT NULL
 );
 
 CREATE TABLE componentes (
@@ -33,18 +35,20 @@ CREATE TABLE componentes (
 	stockMinimo INT NOT NULL,
     fornecedor_id SERIAL REFERENCES fornecedores(fornecedor_id),
     categoria VARCHAR NOT NULL,
-    preco MONEY  NOT NULL
+    preco MONEY  NOT NULL,
+    estado VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE encomendas (
     id_encomenda SERIAL PRIMARY KEY,
     id_componente INTEGER REFERENCES componentes(componentes_id),
     id_fornecedor INTEGER REFERENCES fornecedores(fornecedor_id),
-    quantidade INTEGER,
-    preco_peca MONEY,
-    preco_final MONEY,
-    data_encomenda DATE,
-    estado VARCHAR(20)
+    quantidade INTEGER NOT NULL,
+    preco_peca MONEY NOT NULL,
+    preco_final MONEY NOT NULL,
+    data_encomenda DATE NOT NULL,
+	data_entrega DATE,
+    estado VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE guias_encomenda (
@@ -57,13 +61,13 @@ CREATE TABLE guias_encomenda (
 CREATE TABLE equipamentos (
     id_equipamentos SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
-    descricao TEXT,
-    modelo VARCHAR(255),
+    descricao TEXT NOT NULL,
+    modelo VARCHAR(255) NOT NULL,
     quantidade INT,
 	stock INT,
+    precoUn MONEY,
     preco MONEY,
-    desconto INT,
-	completo BOOL
+    desconto INT
 );
 
 
@@ -87,5 +91,3 @@ CREATE TABLE ordemproducao (
     preco_total MONEY,
 	estado VARCHAR(20)
 );
-
-
