@@ -51,3 +51,15 @@ $$ LANGUAGE plpgsql;
 -- Permissões necessárias
 GRANT EXECUTE ON FUNCTION listar_mao_de_obra(VARCHAR, VARCHAR) TO PUBLIC;
 
+
+-- LISTAR CLIENTES --
+CREATE OR REPLACE FUNCTION listar_clientes()
+RETURNS SETOF public.users
+AS $$
+BEGIN
+  RETURN QUERY SELECT * FROM public.users WHERE tipo_user = 'client';
+END;
+$$ LANGUAGE plpgsql;
+
+-- Grant necessary permissions
+GRANT EXECUTE ON FUNCTION listar_clientes() TO PUBLIC;
