@@ -738,3 +738,37 @@ BEGIN
     COMMIT;
 END;
 $$;
+
+
+CREATE OR REPLACE PROCEDURE adicionar_equipamento_carrinho(
+    p_user_id INTEGER,
+    p_id_equipamento INTEGER,
+    p_quantidade INTEGER
+)
+LANGUAGE 'plpgsql'
+AS $$
+DECLARE
+    v_id_carrinho INTEGER;
+    v_estado_pagamento BOOLEAN;
+BEGIN
+    -- Check if there is an open carrinho for the user
+    SELECT id_carrinho, estado_pagamento INTO v_id_carrinho, v_estado_pagamento
+    FROM carrinho
+    WHERE user_id = p_user_id AND estado_pagamento = false;
+
+    -- If no open carrinho is found or if existing carrinho has estado_pagamento = true, create a new one
+    IF v_id_carrinho IS NULL OR v_estado_pagamento = true THEN
+        INSERT INTO carrinho (user_id, estado_pagamento)
+        VALUES (p_user_id, false)
+        RETURNING id_carrinho INTO v_id_carrinho;
+    END IF;
+
+    -- Add the equipment to carrinho_produtos
+    INSERT INTO carrinho_produtos (id_carrinhoequip, quantidade_equip, id_equipamentos, estado_pagamento)
+    VALUES (v_id_carrinho, p_quantidade, p_id_equipamento, false);
+
+    COMMIT;
+END;
+$$;
+
+

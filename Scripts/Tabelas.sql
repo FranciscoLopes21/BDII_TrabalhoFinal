@@ -91,3 +91,24 @@ CREATE TABLE ordemproducao (
     preco_total MONEY,
 	estado VARCHAR(20)
 );
+
+CREATE TABLE carrinho (
+    id_carrinho SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id),
+    estado_pagamento BOOLEAN DEFAULT false,
+    preço_total MONEY
+);
+
+CREATE TABLE carrinho_produtos (
+    id_carrinho SERIAL PRIMARY KEY,
+    id_carrinhoequip SERIAL,
+    quantidade_equip INTEGER,
+    id_equipamentos INTEGER
+);
+
+CREATE TABLE recibos (
+    id_recibo SERIAL PRIMARY KEY,
+    id_carrinho INTEGER REFERENCES carrinho(id_carrinho),
+    dados_json JSONB,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
