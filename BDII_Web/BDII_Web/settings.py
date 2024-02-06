@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from urllib.parse import quote_plus
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -86,8 +87,17 @@ DATABASES = {
         'HOST': 'localhost', 
         'PORT': '5432',
     },
+    'mongo_db': {
+        'ENGINE': 'djongo',
+        'NAME': 'BDII',        
+        'CLIENT': {
+            'host': 'mongodb+srv://{username}:{password}@{username}.sciijcj.mongodb.net/'.format(
+                username=quote_plus('bd2'),
+                password=quote_plus('db2'),
+            )
+        },
+    }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

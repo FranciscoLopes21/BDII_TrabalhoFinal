@@ -12,12 +12,15 @@ from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 import re
 import json
+import pymongo
 from django.http import JsonResponse, HttpResponse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.db import connection, InternalError
 from django.db import IntegrityError
+
+conexaomongo = pymongo.MongoClient('mongodb+srv://bd2:bd2@bd2.sciijcj.mongodb.net/')["BDII"]
 
 # Create your views here.
 def home(request):
@@ -859,6 +862,12 @@ def RegistarEquipamentos(request):
                         # Chama a stored procedure com um parâmetro OUT
                         cursor.execute('CALL adicionar_equipamento(%s, %s, %s, %s)', [nome, descricao, modelo, desconto])
 
+                    with connection.cursor() as cursorID:
+                        # Chama a stored procedure com um parâmetro OUT
+                        cursorID.execute('SELECT TOP 1 * FROM equipamentos ORDER BY id_equipamentos DESC')
+
+                        RegistarEquipamentosMongo(cursorID,nome,descricao,modelo,desconto)
+
                     messages.success(request, 'Equipamento adicionado com sucesso.')
                     return redirect('listarEquipamentos')
 
@@ -866,6 +875,17 @@ def RegistarEquipamentos(request):
             form = formualarioRegistoEquipamentos()
 
     return render(request, 'AdicionarEquipamentos.html', {'form': form})
+
+
+# regista um novo utilizador
+@login_required(login_url='/login/') 
+def RegistarEquipamentosMongo(nome, descricao, modelo, desconto):
+           
+    mongo_db = conexaomongo
+    colecaoEquipamentos = mongo_db["Equipamentos"]
+    documento = {"nome": nome,"descricao": descricao, "modelo": modelo, "desconto": float(desconto)}
+    colecaoEquipamentos.insert_one(documento)
+
 
 
 
