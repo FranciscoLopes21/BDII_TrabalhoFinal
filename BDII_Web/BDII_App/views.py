@@ -131,7 +131,7 @@ def loginUser(request):
                 login(request, user)
 
                 # Armazenar informações do user na sessão
-                request.session['user_id'] = user.id
+                request.session['user_id'] = user_data[0]
                 request.session['user_email'] = user.email
                 request.session['tipo_user'] = user_data[7]
                 if user_data[7] == "admin":
@@ -1230,10 +1230,26 @@ def concluir_ordem(request, ordem_id):
     with connection.cursor() as cursor:
         cursor.execute('CALL concluir_ordem_producao(%s)', [ordem_id])
 
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id_equipamento, quantidade FROM ordemproducao WHERE id_ordem_prod = %s", [ordem_id])
+            detalhes_ordem = cursor.fetchall()
+
+            adicionarStockEquipamentoMongo(detalhes_ordem)
+
     messages.success(request, 'Ordem de produção concluída.')
     
     # Redirecione de volta à página de associação
     return redirect('listarOrdensProducao')
+
+#Adiciona Sotck a equipamento
+def adicionarStockEquipamentoMongo(detalhes_ordem):
+    mongo_db = conexaomongo
+    colecaoEquipamentos = mongo_db["Equipamentos"]
+    for detalhe in detalhes_ordem:
+        id_equipamento, quantidade = detalhe[0], detalhe[1]
+        filtro = {"idEquipamento": id_equipamento}
+        atualizacao = {"$inc": {"stock": quantidade}}
+        colecaoEquipamentos.update_one(filtro, atualizacao)
 
 
 @login_required(login_url='/login/') 
@@ -1294,54 +1310,61 @@ def listarEquipamentosMongo(request):
 
 @login_required(login_url='/login/') 
 def adicionarCarrinho(request, equipamento_id):
-    tipo_user = request.session.get('tipo_user', None)
     id_user = request.session.get('user_id', None)
-
-    print("id" , id_user)
-
-    quantidade = 1  # Quantidade padrão, você pode ajustar conforme necessário
 
     # Lógica para adicionar o equipamento ao carrinho
     with connection.cursor() as cursor:
-        cursor.execute('CALL adicionar_equipamento_carrinho(%s, %s)', [19, equipamento_id])
+        cursor.execute('CALL adicionar_equipamento_carrinho(%s, %s)', [id_user, equipamento_id])
+
+        RemoveStockEquipamentoMongo(equipamento_id)
 
     messages.success(request, 'Equipamento adicionado ao carrinho.')
 
     # Redireciona para a página desejada após a adição ao carrinho
     return redirect('listarEquipamentosMongo')
 
+def RemoveStockEquipamentoMongo(equipamento_id):
+    mongo_db = conexaomongo
+    colecaoEquipamentos = mongo_db["Equipamentos"]
+
+    filtro = {"idEquipamento": equipamento_id}
+    atualizacao = {"$inc": {"stock": -1}}
+    colecaoEquipamentos.update_one(filtro, atualizacao)
+
 
 
 #Mostrar Fornecedores
 @login_required(login_url='/login/') 
 def listarEquipamnetosCarrinho(request):
-    tipo_user = request.session.get('tipo_user', None)
-
+    id_user = request.session.get('user_id', None)
 
     # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM listar_carrinho(%s)",[19])
+        cursor.execute("SELECT * FROM listar_carrinho(%s)",[id_user])
         equipamentos = cursor.fetchall()
         
     # Passar os dados para o template
     return render(request, 'MostrarCarrinhoCliente.html', {'equipamentos': equipamentos})
 
 
+
 @login_required(login_url='/login/') 
 def remover_equipamento_carrinho(request, equipamento_id, id_carrinho):
-    tipo_user = request.session.get('tipo_user', None)
-    id_user = request.session.get('user_id', None)
 
-    print("id" , id_user)
+    with connection.cursor() as cursor:
+            cursor.execute("SELECT id_equipamentos, quantidade_equip FROM carrinho_produtos WHERE id_carrinho = %s AND id_equipamentos = %s", [id_carrinho, equipamento_id])
+            detalhes = cursor.fetchall()
 
-    quantidade = 1  # Quantidade padrão, você pode ajustar conforme necessário
-
+            adicionarStockEquipamentoMongo(detalhes)
     # Lógica para adicionar o equipamento ao carrinho
     with connection.cursor() as cursor:
         cursor.execute('CALL remover_equipamento_carrinho(%s, %s)', [id_carrinho, equipamento_id])
+
+        
 
     messages.success(request, 'Equipamento removido do carrinho.')
 
     # Redireciona para a página desejada após a adição ao carrinho
     return redirect('listarEquipamnetosCarrinho')
+
 

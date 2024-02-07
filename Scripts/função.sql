@@ -208,7 +208,8 @@ RETURNS TABLE(
     nome_equipamento VARCHAR(255),
     quantidade INTEGER,
     preco_unitario MONEY,
-    preco_final MONEY
+    preco_final MONEY,
+    preco_total MONEY
 )
 LANGUAGE plpgsql
 AS $$
@@ -220,7 +221,8 @@ BEGIN
         e.nome AS nome_equipamento,
         cp.quantidade_equip,
         e.preco AS preco_unitario,
-        (cp.quantidade_equip * e.preco) AS preco_final
+        (cp.quantidade_equip * e.preco) AS preco_final,
+        (SELECT preço_total FROM carrinho WHERE carrinho.id_carrinho = c.id_carrinho) AS preco_total
     FROM
         carrinho c
     JOIN carrinho_produtos cp ON c.id_carrinho = cp.id_carrinho
@@ -228,5 +230,10 @@ BEGIN
     WHERE
         c.user_id = p_user_id
         AND c.estado_pagamento = false;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Error in listar_carrinho: %', SQLERRM;
 END;
 $$;
+
+

@@ -746,12 +746,13 @@ CREATE OR REPLACE PROCEDURE adicionar_equipamento_carrinho(
     p_user_id INTEGER,
     p_id_equipamento INTEGER
 )
-LANGUAGE 'plpgsql'
+LANGUAGE plpgsql
 AS $$
 DECLARE
     v_id_carrinho INTEGER;
     v_estado_pagamento BOOLEAN;
     v_quantidade_equip INTEGER;
+    v_preco_equipamento MONEY;
 BEGIN
     -- Verifique se há um carrinho aberto para o usuário
     SELECT id_carrinho, estado_pagamento INTO v_id_carrinho, v_estado_pagamento
@@ -783,12 +784,24 @@ BEGIN
         VALUES (v_id_carrinho, 1, p_id_equipamento);
     END IF;
 
+    -- Obter o preço do equipamento que está sendo adicionado
+    SELECT preco INTO v_preco_equipamento
+    FROM equipamentos
+    WHERE id_equipamentos = p_id_equipamento;
+
+    -- Atualizar o preço total do carrinho com o preço do equipamento adicionado
+    UPDATE carrinho
+    SET preço_total = preço_total + v_preco_equipamento
+    WHERE id_carrinho = v_id_carrinho;
+
+    -- Atualizar o estoque do equipamento na tabela equipamentos
+    UPDATE equipamentos
+    SET stock = stock - 1
+    WHERE id_equipamentos = p_id_equipamento;
+
     COMMIT;
 END;
 $$;
-
-
-
 
 
 
@@ -800,15 +813,34 @@ CREATE OR REPLACE PROCEDURE remover_equipamento_carrinho(
 )
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_quantidade_equip INTEGER;
+    v_preco_total_equip MONEY;  -- Assumindo que o preço total do equipamento é do tipo MONEY
 BEGIN
-    -- Excluir registros da tabela carrinho_produtos
-    DELETE FROM carrinho_produtos cp
-    USING carrinho c
-    WHERE cp.id_carrinho = c.id_carrinho
-      AND cp.id_equipamentos = p_id_equipamento
-      AND c.estado_pagamento = false;
+    -- Obter a quantidade do equipamento sendo removido
+    SELECT quantidade_equip, quantidade_equip * equipamentos.preco INTO v_quantidade_equip, v_preco_total_equip
+    FROM carrinho_produtos
+    JOIN equipamentos ON carrinho_produtos.id_equipamentos = equipamentos.id_equipamentos
+    WHERE carrinho_produtos.id_carrinho = p_id_carrinho AND carrinho_produtos.id_equipamentos = p_id_equipamento;
+
+    -- Remover registros da tabela carrinho_produtos
+    DELETE FROM carrinho_produtos
+    WHERE id_carrinho = p_id_carrinho AND id_equipamentos = p_id_equipamento;
+
+    -- Atualizar o estoque do equipamento removido
+    UPDATE equipamentos
+    SET stock = stock + v_quantidade_equip
+    WHERE id_equipamentos = p_id_equipamento;
+
+    -- Atualizar o preço total no carrinho
+    UPDATE carrinho
+    SET preço_total = preço_total - CAST(v_preco_total_equip AS MONEY)
+    WHERE id_carrinho = p_id_carrinho;
 
     -- Comitar a transação
     COMMIT;
 END;
 $$;
+
+
+

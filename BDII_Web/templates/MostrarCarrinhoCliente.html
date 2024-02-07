@@ -51,17 +51,26 @@
         
         <div style="display: flex; justify-content: center; align-items: center;">
             {% if equipamentos %}
-                <a href="" class="button" style="text-decoration: none;">
-                    <i class="fa-solid fa-plus"></i>Finalizar Compra - Total: {{ result.6 }}
+                <a href="#" class="button" style="text-decoration: none;">
+                    <i class="fa-solid fa-plus"></i> Finalizar Compra
                 </a>
             {% endif %}
-        </div>
-        
 
     </div>
     <!-- Adicione este trecho de código no início do bloco "content" -->
     
     <!-- Fim do trecho adicionado -->
+    <table>
+        {% for result in equipamentos %}
+            {% if forloop.first %}
+                <tr>
+                    <td>Total a pagar: {{ result.6 }}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+    
+
 
     <br>
     <table>
@@ -79,6 +88,7 @@
             <td>{{result.4}}</td>
             <td>{{result.5}}</td>
             <td>{{result.0}}</td>
+            <td>{{result.6}}</td>
             <td>
                 <a href="{% url 'remover_equipamento_carrinho' equipamento_id=result.1 id_carrinho=result.0 %}"><input class="button-outline" type="submit" value="Remover"/></a>
             </td>

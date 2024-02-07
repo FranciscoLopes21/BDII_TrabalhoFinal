@@ -57,6 +57,7 @@
 
     <br>
     <table>
+        {% for result in equipamentos%}
         <tr>
             <th>Nome</th> 
             <th>Descricao</th> 
@@ -68,7 +69,7 @@
             <th>Disponivel</th>
             <th>Açoes</th>
         </tr>
-        {% for result in equipamentos%}
+        
         <tr>
             <td>{{result.nome}}</td>
             <td>{{result.descricao}}</td>
@@ -79,7 +80,11 @@
             <td>{{result.estado}}</td>
             <td>{{result.disponivel}}</td>
             <td>
-                <a href="{% url 'adicionarCarrinho' equipamento_id=result.idEquipamento %}"><input class="button" type="submit" value="Comprar"/></a>
+                {% if result.stock <= 0 %}
+                    Sem stock
+                {% else %}
+                    <a href="{% url 'adicionarCarrinho' equipamento_id=result.idEquipamento %}"><input class="button" type="submit" value="Comprar"/></a>
+                {% endif %}
             </td>
         </tr>
         {% if result.comp %}
