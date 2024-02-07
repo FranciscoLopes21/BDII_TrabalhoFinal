@@ -198,3 +198,35 @@ $$ LANGUAGE plpgsql;
 
 -- Grant necessary permissions
 GRANT EXECUTE ON FUNCTION listar_clientes() TO PUBLIC;
+
+
+-- Lista carrinho
+CREATE OR REPLACE FUNCTION listar_carrinho(p_user_id INTEGER)
+RETURNS TABLE(
+    id_carrinho INTEGER,
+    id_equipamento INTEGER,
+    nome_equipamento VARCHAR(255),
+    quantidade INTEGER,
+    preco_unitario MONEY,
+    preco_final MONEY
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        c.id_carrinho,
+        cp.id_equipamentos,
+        e.nome AS nome_equipamento,
+        cp.quantidade_equip,
+        e.preco AS preco_unitario,
+        (cp.quantidade_equip * e.preco) AS preco_final
+    FROM
+        carrinho c
+    JOIN carrinho_produtos cp ON c.id_carrinho = cp.id_carrinho
+    JOIN equipamentos e ON cp.id_equipamentos = e.id_equipamentos
+    WHERE
+        c.user_id = p_user_id
+        AND c.estado_pagamento = false;
+END;
+$$;

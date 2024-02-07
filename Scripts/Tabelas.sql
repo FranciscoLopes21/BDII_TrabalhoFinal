@@ -101,10 +101,10 @@ CREATE TABLE carrinho (
 );
 
 CREATE TABLE carrinho_produtos (
-    id_carrinho SERIAL PRIMARY KEY,
-    id_carrinhoequip SERIAL,
+    id_carrinho SERIAL NOT NULL REFERENCES carrinho(id_carrinho),
+    id_carrinhoequip SERIAL PRIMARY KEY,
     quantidade_equip INTEGER,
-    id_equipamentos INTEGER
+    id_equipamentos SERIAL NOT NULL REFERENCES equipamentos(id_equipamentos)
 );
 
 CREATE TABLE recibos (

@@ -64,6 +64,10 @@ urlpatterns = [
 
     #Cliente
     path('listarEquipamentosMongo/', views.listarEquipamentosMongo, name='listarEquipamentosMongo'),
+    path('adicionarCarrinho/<int:equipamento_id>/', views.adicionarCarrinho, name='adicionarCarrinho'),
+    path('listarEquipamnetosCarrinho/', views.listarEquipamnetosCarrinho, name='listarEquipamnetosCarrinho'),
+    path('remover_equipamento_carrinho/<int:equipamento_id>/<int:id_carrinho>/', views.remover_equipamento_carrinho, name='remover_equipamento_carrinho'),
+
 
 
 ]

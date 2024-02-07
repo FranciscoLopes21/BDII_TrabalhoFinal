@@ -1289,3 +1289,59 @@ def listarEquipamentosMongo(request):
     equipamentos = colecaoEquipamentos.find({"estado": "Ativo", "disponivel": True}, {"_id": 0})
     return render(request, 'MostrarEquipamentosMongo.html', {'equipamentos': equipamentos})
 
+
+
+
+@login_required(login_url='/login/') 
+def adicionarCarrinho(request, equipamento_id):
+    tipo_user = request.session.get('tipo_user', None)
+    id_user = request.session.get('user_id', None)
+
+    print("id" , id_user)
+
+    quantidade = 1  # Quantidade padrão, você pode ajustar conforme necessário
+
+    # Lógica para adicionar o equipamento ao carrinho
+    with connection.cursor() as cursor:
+        cursor.execute('CALL adicionar_equipamento_carrinho(%s, %s)', [19, equipamento_id])
+
+    messages.success(request, 'Equipamento adicionado ao carrinho.')
+
+    # Redireciona para a página desejada após a adição ao carrinho
+    return redirect('listarEquipamentosMongo')
+
+
+
+#Mostrar Fornecedores
+@login_required(login_url='/login/') 
+def listarEquipamnetosCarrinho(request):
+    tipo_user = request.session.get('tipo_user', None)
+
+
+    # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM listar_carrinho(%s)",[19])
+        equipamentos = cursor.fetchall()
+        
+    # Passar os dados para o template
+    return render(request, 'MostrarCarrinhoCliente.html', {'equipamentos': equipamentos})
+
+
+@login_required(login_url='/login/') 
+def remover_equipamento_carrinho(request, equipamento_id, id_carrinho):
+    tipo_user = request.session.get('tipo_user', None)
+    id_user = request.session.get('user_id', None)
+
+    print("id" , id_user)
+
+    quantidade = 1  # Quantidade padrão, você pode ajustar conforme necessário
+
+    # Lógica para adicionar o equipamento ao carrinho
+    with connection.cursor() as cursor:
+        cursor.execute('CALL remover_equipamento_carrinho(%s, %s)', [id_carrinho, equipamento_id])
+
+    messages.success(request, 'Equipamento removido do carrinho.')
+
+    # Redireciona para a página desejada após a adição ao carrinho
+    return redirect('listarEquipamnetosCarrinho')
+

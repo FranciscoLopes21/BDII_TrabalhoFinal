@@ -23,7 +23,7 @@
     <a href="">
         <i class="fa-solid fa-list"></i> Lista de compras
     </a>
-    <a href="">
+    <a href="{% url 'listarEquipamnetosCarrinho' %}">
         <i class="fa-solid fa-sack-dollar"></i> Carrinho
     </a>
     <a href="{% url 'logout' %}">
@@ -79,8 +79,7 @@
             <td>{{result.estado}}</td>
             <td>{{result.disponivel}}</td>
             <td>
-                <a href=""><input class="button" type="submit" value="Comprar"/></a>
-                <a href=""><input class="button-outline" type="submit" value="Ver componentes"/></a>
+                <a href="{% url 'adicionarCarrinho' equipamento_id=result.idEquipamento %}"><input class="button" type="submit" value="Comprar"/></a>
             </td>
         </tr>
         {% if result.comp %}

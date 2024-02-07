@@ -739,43 +739,76 @@ BEGIN
 END;
 $$;
 
+
+
+-- Adiciona equipamento ao carrinho
 CREATE OR REPLACE PROCEDURE adicionar_equipamento_carrinho(
     p_user_id INTEGER,
-    p_id_equipamento INTEGER,
-    p_quantidade INTEGER
+    p_id_equipamento INTEGER
 )
 LANGUAGE 'plpgsql'
-LANGUAGE 'plpgsql' 
 AS $$
 DECLARE
     v_id_carrinho INTEGER;
     v_estado_pagamento BOOLEAN;
     v_quantidade_equip INTEGER;
 BEGIN
-    -- Check if there is an open carrinho for the user
+    -- Verifique se há um carrinho aberto para o usuário
     SELECT id_carrinho, estado_pagamento INTO v_id_carrinho, v_estado_pagamento
     FROM carrinho
     WHERE user_id = p_user_id AND estado_pagamento = false;
 
-    -- If no open carrinho is found or if existing carrinho has estado_pagamento = true, create a new one
+    -- Se nenhum carrinho aberto for encontrado ou se o carrinho existente tiver estado_pagamento = true, crie um novo
     IF v_id_carrinho IS NULL OR v_estado_pagamento = true THEN
-        INSERT INTO carrinho (user_id, estado_pagamento)
-        VALUES (p_user_id, false)
+        INSERT INTO carrinho (user_id, estado_pagamento, preço_total)
+        VALUES (p_user_id, false, 0.0)
         RETURNING id_carrinho INTO v_id_carrinho;
     END IF;
 
-            SELECT SUM (quantidade_equip) INTO v_quantidade_equip FROM carrinho_produtos (quantidade_equip) 
-            WHERE id_carrinho = v_id_carrinho;
-            
-            UPDATE carrinho_produtos SET quantidade_equip = v_quantidade_equip;
-            WHERE id_carrinho = v_id_carrinho;
-            
-    -- Add the equipment to carrinho_produtos
-    INSERT INTO carrinho_produtos (id_carrinhoequip, quantidade_equip, id_equipamentos, estado_pagamento)
-    VALUES (v_id_carrinho, p_quantidade, p_id_equipamento, false);
-    VALUES (v_id_carrinho, p_id_equipamento, false);
-    
+    -- Se o carrinho não existir, gere um erro ou faça algo para lidar com essa situação
 
+    -- Verifique se o equipamento já está presente no carrinho
+    SELECT quantidade_equip INTO v_quantidade_equip
+    FROM carrinho_produtos
+    WHERE id_carrinho = v_id_carrinho AND id_equipamentos = p_id_equipamento;
+
+    -- Se o equipamento estiver presente, atualize a quantidade, caso contrário, insira um novo registro
+    IF FOUND THEN
+        -- Atualize a quantidade de equipamento no carrinho
+        UPDATE carrinho_produtos SET quantidade_equip = v_quantidade_equip + 1
+        WHERE id_carrinho = v_id_carrinho AND id_equipamentos = p_id_equipamento;
+    ELSE
+        -- Adicione o equipamento a carrinho_produtos
+        INSERT INTO carrinho_produtos (id_carrinho, quantidade_equip, id_equipamentos)
+        VALUES (v_id_carrinho, 1, p_id_equipamento);
+    END IF;
+
+    COMMIT;
+END;
+$$;
+
+
+
+
+
+
+
+-- remover equipamento carrinho
+CREATE OR REPLACE PROCEDURE remover_equipamento_carrinho(
+    p_id_carrinho INTEGER,
+    p_id_equipamento INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Excluir registros da tabela carrinho_produtos
+    DELETE FROM carrinho_produtos cp
+    USING carrinho c
+    WHERE cp.id_carrinho = c.id_carrinho
+      AND cp.id_equipamentos = p_id_equipamento
+      AND c.estado_pagamento = false;
+
+    -- Comitar a transação
     COMMIT;
 END;
 $$;
