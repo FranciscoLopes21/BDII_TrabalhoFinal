@@ -1,14 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://kit.fontawesome.com/8b1d1b66fd.js" crossorigin="anonymous"></script>
-    <title>Associar Componentes a Equipamentos</title>
+    <title>Loja</title>
+
+    
 </head>
 <body>
 
 {% extends 'main.html' %}
+
+
+
+
+
+
 
 {% block content %}
 
@@ -54,73 +61,53 @@
         </div>
         {% endif %}
 
-    <div class="action">
-        <h2>Todos os Equipamentos</h2>
-        <br>
         
-        <div style="display: flex; justify-content: space-between; align-items: center;">
 
-            <form method="GET" action="{% url 'listarMaoDeObra' %}" style="margin-right: auto;">
-                <label for="nome">Filtrar por Nome:</label>
-                <input type="text" class="form-control" name="nome" id="nome" value="{{ request.GET.nome }}">
+
+
+    <div class="action">
+        <h2>Todas as Vendas</h2>
+        <br> 
+        <div class="filter-form">
+            <form method="GET" action="{% url 'listarEncomendas' %}">
+                <label for="guia">Filtrar por número de guia:</label>
+                <input type="text" class="form-control" name="id_encomenda" id="guia" value="{{ request.GET.id_encomenda }}">
                 <input class="button" type="submit" value="Filtrar" />
             </form>
-    
         </div>
-        
-
+        <br>
+        <br>
+        <div>
+            <a href="{% url 'listaVendas' %}" class="button" style="text-decoration: none; margin-right: 10px;">
+                <i class="fa-solid fa-filter-circle-xmark"></i>
+            </a>
+        </div>
     </div>
     <!-- Adicione este trecho de código no início do bloco "content" -->
     
     <!-- Fim do trecho adicionado -->
-
+   
 
     <br>
     <table>
         <tr>
-            <th>Nome</th> 
-            <th>Referencia</th> 
-            <th>Nome Fornecedor</th>
-            <th>Categoria</th>
+            <th>N Compra</th> 
+            <th>Cliente</th> 
+            <th>Total Pago</th> 
         </tr>
-        {% for result in componentes%}
+        {% for result in vendas %}
         <tr>
-            <td>{{result.0}}</td>
-            <td>{{result.1}}</td>
-            <td>{{result.2}}</td>
-            <td>{{result.3}}</td>
+            <td>{{ result.0 }}</td>
+            <td>{{ result.1 }}</td>
+            <td>{{ result.2 }}</td>
             <td>
-                <form method="POST" action="{% url 'associarCompEquip' id_equipamento %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="componente_id" value="{{ result.0 }}">
-                    <input class="button" type="submit" value="Associar"/>
-                </form>
+                <a href="{% url 'download_jsonRecibo' result.0 %}" class="button" style="text-decoration: none; padding-right: 10px;"><i class="fa-solid fa-file-lines"></i>Recibo</a>
             </td>
         </tr> 
         {% endfor %}
     </table>
 
-    <br>
-    <table>
-        <tr>
-            <th>Id</th> 
-            <th>Qunatidade</th> 
-        </tr>
-        {% for result in componentes_associados%}
-        <tr>
-            <td>{{result.2}}</td>
-            <td>{{result.1}}</td>
-            <td>
-                <form method="POST" action="{% url 'desassociarComponente' id_equipamento=id_equipamento id_componente=result.0 %}">
-                    {% csrf_token %}
-                    <input class="button-outline" type="submit" value="Desassociar"/>
-                </form>
-            </td>
-        </tr> 
-        {% endfor %}
-    </table>
-
-    
+  
 </div>
 </div>
 

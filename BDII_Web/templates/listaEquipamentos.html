@@ -42,7 +42,7 @@
     <a href="{% url 'listarClientes' %}">
         <i class="fa-solid fa-person"></i>Clientes
     </a>
-    <a href="{% url 'listarOrdensProducao' %}">
+    <a href="{% url 'listaVendas' %}">
         <i class="fa-solid fa-sack-dollar"></i>Vendas
     </a>
     <a href="{% url 'logout' %}">
@@ -100,7 +100,6 @@
             <th>Stock</th>
             <th>Preço Un</th>
             <th>Preço</th>
-            <th>Desconto</th>
             <th>Estado</th>
             <th>Disponivel</th>
         </tr>
@@ -116,20 +115,19 @@
             <td>{{result.7}}</td>
             <td>{{result.8}}</td>
             <td>{{result.9}}</td>
-            <td>{{result.10}}</td>
             <td>
-                {% if result.9 == 'Ativo' %} 
+                {% if result.8 == 'Ativo' %} 
                     <a href="{{result.1}}/"><input class="button" type="submit" value="Editar"/></a>
                     <a href="{% url 'adicionarPreco' id_equipamento=result.0 %}"><input class="button" type="submit" value="Preço"/></a>
                     <a href="{% url 'associarCompEquip' id=result.0 %}"><input class="button" type="submit" value="Associar Componentes"/></a>
                     <a href="{% url 'criarOrdemProducao' id_equipamento=result.0 %}"><input class="button" type="submit" value="Produzir"/></a>
-                    {% if result.10  %}
+                    {% if result.9  %}
                         <a href="{% url 'indisponivelEquipamento' id_equipamento=result.0 %}"><input class="button-outline" type="submit" value="Indisponivel"/></a>
                     {% else %}
                         <a href="{% url 'disponivelEquipamento' id_equipamento=result.0 %}"><input class="button-outline" type="submit" value="Disponibilizar"/></a>
                     {% endif %}
                     <a href="{% url 'desativarEquipamento' id_equipamento=result.0 %}"><input class="button-outline" type="submit" value="Inativar"/></a>
-                {% elif result.9 == 'Inativo' %}
+                {% elif result.8 == 'Inativo' %}
                     <a href="{% url 'ativarEquipamento' id_equipamento=result.0 %}"><input class="button-outline" type="submit" value="Ativar"/></a>
                 {% endif %}
                 

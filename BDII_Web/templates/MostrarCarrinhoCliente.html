@@ -20,10 +20,11 @@
 {% block content %}
 
 <div class="navbar">
-    <a href="">
+    <a href="{% url 'listarEquipamentosMongo' %}">Loja</a>
+    <a href="{% url 'listaCompras' %}">
         <i class="fa-solid fa-list"></i> Lista de compras
     </a>
-    <a href="">
+    <a href="{% url 'listarEquipamnetosCarrinho' %}">
         <i class="fa-solid fa-sack-dollar"></i> Carrinho
     </a>
     <a href="{% url 'logout' %}">
@@ -31,75 +32,61 @@
     </a>
 </div>
 <div class="box">
-        
     <div class="container">
         {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            {{ message }}
-            {% endfor %}
-        </div>
+            <div class="messages">
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </div>
         {% endif %}
 
-        
+        <div class="action">
+            <h2>Todas as Ordens de Produção</h2>
+            <br>
 
+            <!-- Adicione este trecho de código no início do bloco "content" -->
 
+            <!-- Fim do trecho adicionado -->
 
-    <div class="action">
-        <h2>Todas as Ordens de Produção</h2>
+            <!-- Exibir o link "Finalizar Compra" apenas uma vez -->
+            {% for result in equipamentos %}
+                {% if forloop.first %}
+                    <a href="{% url 'finalizarCompra' id_carrinho=result.0 %}" class="button" style="text-decoration: none;">
+                        <i class="fa-solid fa-plus"></i> Finalizar Compra
+                        <td>Total a pagar: {{ result.6 }}</td>
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
         <br>
-        
-        <div style="display: flex; justify-content: center; align-items: center;">
-            {% if equipamentos %}
-                <a href="#" class="button" style="text-decoration: none;">
-                    <i class="fa-solid fa-plus"></i> Finalizar Compra
-                </a>
-            {% endif %}
-
-    </div>
-    <!-- Adicione este trecho de código no início do bloco "content" -->
-    
-    <!-- Fim do trecho adicionado -->
-    <table>
-        {% for result in equipamentos %}
-            {% if forloop.first %}
+        <table>
+            <tr>
+                <th>Nome</th>
+                <th>Quantidade</th>
+                <th>Preço Un</th>
+                <th>Total</th>
+            </tr>
+            {% for result in equipamentos %}
                 <tr>
-                    <td>Total a pagar: {{ result.6 }}</td>
+                    <td>{{result.1}}</td>
+                    <td>{{result.2}}</td>
+                    <td>{{result.3}}</td>
+                    <td>{{result.4}}</td>
+                    <td>{{result.5}}</td>
+                    <td>{{result.0}}</td>
+                    <td>{{result.6}}</td>
+                    <td>
+                        <a href="{% url 'remover_equipamento_carrinho' equipamento_id=result.1 id_carrinho=result.0 %}">
+                            <input class="button-outline" type="submit" value="Remover"/>
+                        </a>
+                    </td>
                 </tr>
-            {% endif %}
-        {% endfor %}
-    </table>
-    
-
-
-    <br>
-    <table>
-        <tr>
-            <th>Nome</th> 
-            <th>Quantidade</th>
-            <th>Preço Un</th>
-            <th>Total</th>
-        </tr>
-        {% for result in equipamentos%}
-        <tr>
-            <td>{{result.1}}</td>
-            <td>{{result.2}}</td>
-            <td>{{result.3}}</td>
-            <td>{{result.4}}</td>
-            <td>{{result.5}}</td>
-            <td>{{result.0}}</td>
-            <td>{{result.6}}</td>
-            <td>
-                <a href="{% url 'remover_equipamento_carrinho' equipamento_id=result.1 id_carrinho=result.0 %}"><input class="button-outline" type="submit" value="Remover"/></a>
-            </td>
-        </tr> 
-        {% endfor %}
-    </table>
-
-
-    
+            {% endfor %}
+        </table>
+    </div>
 </div>
-</div>
+
 
 {% endblock content %}
 

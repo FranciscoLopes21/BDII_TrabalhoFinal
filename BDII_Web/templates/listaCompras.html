@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/8b1d1b66fd.js" crossorigin="anonymous"></script>
+    <title>Loja</title>
+
+    
+</head>
+<body>
+
+{% extends 'main.html' %}
+
+
+
+
+
+
+
+{% block content %}
+
+<div class="navbar">
+    <a href="{% url 'listarEquipamentosMongo' %}">Loja</a>
+    <a href="{% url 'listaCompras' %}">
+        <i class="fa-solid fa-list"></i> Lista de compras
+    </a>
+    <a href="{% url 'listarEquipamnetosCarrinho' %}">
+        <i class="fa-solid fa-sack-dollar"></i> Carrinho
+    </a>
+    <a href="{% url 'logout' %}">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </a>
+</div>
+
+<div class="box">
+        
+    <div class="container">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        
+
+
+
+    <div class="action">
+        <h2>Todas as Encomendas</h2>
+        <br> 
+        <div class="filter-form">
+            <form method="GET" action="{% url 'listarEncomendas' %}">
+                <label for="guia">Filtrar por número de guia:</label>
+                <input type="text" class="form-control" name="id_encomenda" id="guia" value="{{ request.GET.id_encomenda }}">
+                <input class="button" type="submit" value="Filtrar" />
+            </form>
+        </div>
+        <br>
+        <br>
+    </div>
+    <!-- Adicione este trecho de código no início do bloco "content" -->
+    
+    <!-- Fim do trecho adicionado -->
+   
+
+    <br>
+    <table>
+        <tr>
+            <th>N Compra</th> 
+            <th>Total Pago</th> 
+        </tr>
+        {% for result in compras %}
+        <tr>
+            <td>{{ result.0 }}</td>
+            <td>{{ result.1 }}</td>
+            <td>
+                <a href="{% url 'download_jsonRecibo' result.0 %}" class="button" style="text-decoration: none; padding-right: 10px;"><i class="fa-solid fa-file-lines"></i>Recibo</a>
+            </td>
+        </tr> 
+        {% endfor %}
+    </table>
+
+  
+</div>
+</div>
+
+{% endblock content %}
+
+</body>
+</html>

@@ -69,6 +69,9 @@ urlpatterns = [
     path('remover_equipamento_carrinho/<int:equipamento_id>/<int:id_carrinho>/', views.remover_equipamento_carrinho, name='remover_equipamento_carrinho'),
 
 
-
+    path('finalizarCompra/<int:id_carrinho>/', views.finalizarCompra, name='finalizarCompra'), 
+    path('listaCompras', views.listaCompras, name='listaCompras'),
+    path('download_jsonRecibo/<int:id_carrinho>/', views.download_jsonRecibo, name='download_jsonRecibo'),
+    path('listaVendas', views.listaVendas, name='listaVendas'),
 ]
 

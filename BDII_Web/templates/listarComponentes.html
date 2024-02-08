@@ -42,7 +42,7 @@
     <a href="{% url 'listarClientes' %}">
         <i class="fa-solid fa-person"></i>Clientes
     </a>
-    <a href="{% url 'listarOrdensProducao' %}">
+    <a href="{% url 'listaVendas' %}">
         <i class="fa-solid fa-sack-dollar"></i>Vendas
     </a>
     <a href="{% url 'logout' %}">
@@ -73,7 +73,7 @@
             <div class="filter-form">
                 <form method="GET" action="{% url 'listarComponentes' %}">
                     <label for="referencia">Filtrar por Referencia:</label>
-                    <input type="text" class="form-control" name="referencia" id="referencia" value="{{ request.GET.referencia }}">
+                    <input type="number" class="form-control" name="referencia" id="referencia" value="{{ request.GET.referencia }}">
                     <input class="button" type="submit" value="Filtrar" />
                 </form>
             </div>

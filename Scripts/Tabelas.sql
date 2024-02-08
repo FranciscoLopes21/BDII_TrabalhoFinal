@@ -58,18 +58,25 @@ CREATE TABLE guias_encomenda (
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE equipamentos (
-    id_equipamentos SERIAL PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    descricao TEXT NOT NULL,
-    modelo VARCHAR(255) NOT NULL,
-    quantidade INT,
-	stock INT,
-    precoUn MONEY,
-    preco MONEY,
-    desconto INT
-);
+CREATE TABLE IF NOT EXISTS public.equipamentos
+(
+    id_equipamentos integer NOT NULL DEFAULT nextval('equipamentos_id_equipamentos_seq'::regclass),
+    nome character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    descricao text COLLATE pg_catalog."default" NOT NULL,
+    modelo character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    quantidade integer,
+    stock integer,
+    precoun money,
+    preco money,
+    estado character varying(20) COLLATE pg_catalog."default",
+    disponivel boolean,
+    CONSTRAINT equipamentos_pkey PRIMARY KEY (id_equipamentos)
+)
 
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.equipamentos
+    OWNER to postgres;
 
 
 CREATE TABLE equipamentos_componentes (
@@ -110,6 +117,7 @@ CREATE TABLE carrinho_produtos (
 CREATE TABLE recibos (
     id_recibo SERIAL PRIMARY KEY,
     id_carrinho INTEGER REFERENCES carrinho(id_carrinho),
+    user_id INTEGER NOT NULL REFERENCES users(user_id),
     dados_json JSONB,
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

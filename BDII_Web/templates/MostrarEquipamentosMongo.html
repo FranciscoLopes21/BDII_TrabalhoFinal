@@ -20,7 +20,8 @@
 {% block content %}
 
 <div class="navbar">
-    <a href="">
+    <a href="{% url 'listarEquipamentosMongo' %}">Loja</a>
+    <a href="{% url 'listaCompras' %}">
         <i class="fa-solid fa-list"></i> Lista de compras
     </a>
     <a href="{% url 'listarEquipamnetosCarrinho' %}">
@@ -64,7 +65,6 @@
             <th>Modelo</th> 
             <th>Stock</th> 
             <th>Preco</th> 
-            <th>Desconto</th>
             <th>Estado</th>
             <th>Disponivel</th>
             <th>Açoes</th>
@@ -76,7 +76,6 @@
             <td>{{result.modelo}}</td>
             <td>{{result.stock}}</td>
             <td>{{result.preco}}</td>
-            <td>{{result.desconto}}</td>
             <td>{{result.estado}}</td>
             <td>{{result.disponivel}}</td>
             <td>

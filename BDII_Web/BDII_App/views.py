@@ -857,27 +857,23 @@ def RegistarEquipamentos(request):
                 nome = form.cleaned_data["nome"]
                 descricao = form.cleaned_data["descricao"]
                 modelo = form.cleaned_data["modelo"]
-                desconto = form.cleaned_data["desconto"]
 
-                if desconto and not desconto.isdigit() and len(desconto) > 3:
-                    raise ValidationError('O desconto deve ser um número com até 3 dígitos.')
+                
+                with connection.cursor() as cursor:
+                    # Chama a stored procedure com um parâmetro OUT
+                    cursor.execute('CALL adicionar_equipamento(%s, %s, %s)', [nome, descricao, modelo])
 
-                else:
-                    with connection.cursor() as cursor:
-                        # Chama a stored procedure com um parâmetro OUT
-                        cursor.execute('CALL adicionar_equipamento(%s, %s, %s, %s)', [nome, descricao, modelo, desconto])
+                with connection.cursor() as cursorID:
+                    # Chama a stored procedure com um parâmetro OUT
+                    cursorID.execute('SELECT * FROM equipamentos ORDER BY id_equipamentos DESC LIMIT 1')
+                    ultimo_equipamento = cursorID.fetchone()
 
-                    with connection.cursor() as cursorID:
-                        # Chama a stored procedure com um parâmetro OUT
-                        cursorID.execute('SELECT * FROM equipamentos ORDER BY id_equipamentos DESC LIMIT 1')
-                        ultimo_equipamento = cursorID.fetchone()
-
-                        id_equipamento = ultimo_equipamento[0]
-                        RegistarEquipamentosMongo(id_equipamento, nome, descricao, modelo, desconto)
+                    id_equipamento = ultimo_equipamento[0]
+                    RegistarEquipamentosMongo(id_equipamento, nome, descricao, modelo)
 
 
-                    messages.success(request, 'Equipamento adicionado com sucesso.')
-                    return redirect('listarEquipamentos')
+                messages.success(request, 'Equipamento adicionado com sucesso.')
+                return redirect('listarEquipamentos')
 
         else:
             form = formualarioRegistoEquipamentos()
@@ -886,10 +882,10 @@ def RegistarEquipamentos(request):
 
 
 # regista Equipamneto Mongo
-def RegistarEquipamentosMongo(id_equipamento, nome, descricao, modelo, desconto):
+def RegistarEquipamentosMongo(id_equipamento, nome, descricao, modelo):
     mongo_db = conexaomongo
     colecaoEquipamentos = mongo_db["Equipamentos"]
-    documento = {"idEquipamento": id_equipamento, "nome": nome, "descricao": descricao, "modelo": modelo, "comp": [], "stock": 0, "preco": 0, "desconto": float(desconto), "estado": 'Ativo', "disponivel": False}
+    documento = {"idEquipamento": id_equipamento, "nome": nome, "descricao": descricao, "modelo": modelo, "comp": [], "stock": 0, "preco": 0, "estado": 'Ativo', "disponivel": False}
     colecaoEquipamentos.insert_one(documento)
 
 
@@ -1367,4 +1363,82 @@ def remover_equipamento_carrinho(request, equipamento_id, id_carrinho):
     # Redireciona para a página desejada após a adição ao carrinho
     return redirect('listarEquipamnetosCarrinho')
 
+
+@login_required(login_url='/login/') 
+def finalizarCompra(request, id_carrinho):
+    id_user = request.session.get('user_id', None)
+
+    with connection.cursor() as cursor:
+            cursor.execute(
+                "CALL finalizarCompra_criarRecibo(%s, %s)", [id_user, id_carrinho]
+            )
+    
+    # Configurar a resposta HTTP para download do arquivo JSON
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT dados_json FROM recibos WHERE id_carrinho = LASTVAL()")
+        dados_encomenda = cursor.fetchall()
+
+        if dados_encomenda:
+            dados_encomenda = dados_encomenda[0][0]
+            response = HttpResponse(dados_encomenda, content_type='application/json')
+            response['Content-Disposition'] = f'attachment; filename=guia_encomenda_{id}.json'
+
+    messages.success(request, 'Equipamento removido do carrinho.')
+
+    # Redireciona para a página desejada após a adição ao carrinho
+    return redirect('listarEquipamnetosCarrinho')
+
+
+#Listar Compras User
+@login_required(login_url='/login/') 
+def listaCompras(request):
+    id_user = request.session.get('user_id', None)
+
+    # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM listar_compras_user(%s)",[id_user])
+        compras = cursor.fetchall()
+        
+    # Passar os dados para o template
+    return render(request, 'listaCompras.html', {'compras': compras})
+
+@login_required(login_url='/login/') 
+def download_jsonRecibo(request, id_carrinho):
+
+    # Aqui você coloca a lógica para obter os dados do banco de dados
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT dados_json FROM recibos WHERE id_carrinho = %s", [id_carrinho])
+        dados_json = cursor.fetchone()
+
+    # Verificar se encontrou dados para a encomenda específica
+    if dados_json:
+        # Convertendo os dados para string JSON
+        json_content = dados_json[0]
+        
+        # Configurar a resposta HTTP para download do arquivo JSON
+        response = HttpResponse(json_content, content_type='application/json')
+        response['Content-Disposition'] = f'attachment; filename=Recibo_{id_carrinho}.json'
+
+        return response
+    else:
+        # Se não encontrar dados, pode retornar uma resposta indicando isso
+        return HttpResponse("Dados da encomenda não encontrados.")
+    
+
+
+@login_required(login_url='/login/') 
+def listaVendas(request):
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM listar_vendas()")
+        vendas = cursor.fetchall()
+        
+    # Passar os dados para o template
+    return render(request, 'listaVendas.html', {'vendas': vendas})
 

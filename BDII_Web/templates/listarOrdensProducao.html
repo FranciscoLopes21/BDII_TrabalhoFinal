@@ -42,7 +42,7 @@
     <a href="{% url 'listarClientes' %}">
         <i class="fa-solid fa-person"></i>Clientes
     </a>
-    <a href="{% url 'listarOrdensProducao' %}">
+    <a href="{% url 'listaVendas' %}">
         <i class="fa-solid fa-sack-dollar"></i>Vendas
     </a>
     <a href="{% url 'logout' %}">
@@ -67,15 +67,6 @@
     <div class="action">
         <h2>Todas as Ordens de Produção</h2>
         <br>
-        
-        <div class="filter-form">
-            <form method="GET" action="{% url 'listarMaoDeObra' %}">
-                <label for="nome">Filtrar por Nome:</label>
-                <input type="text" class="form-control" name="nome" id="nome" value="{{ request.GET.nome }}">
-                <input class="button" type="submit" value="Filtrar" />
-            </form>
-        </div>
-
         <br>
         <br>
         <div>

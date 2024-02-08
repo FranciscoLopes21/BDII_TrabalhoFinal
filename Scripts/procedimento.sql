@@ -81,15 +81,14 @@ ALTER PROCEDURE public.registar_admin(character varying, character varying, date
 CREATE OR REPLACE PROCEDURE public.adicionar_equipamento(
     IN p_nome VARCHAR(255),
     IN p_descricao TEXT,
-    IN p_modelo VARCHAR(255),
-    IN p_desconto INTEGER
+    IN p_modelo VARCHAR(255)
 )
 LANGUAGE 'plpgsql'
 AS $$
 BEGIN
     -- Utiliza o comando INSERT ... RETURNING diretamente no corpo do procedimento
-    INSERT INTO equipamentos (nome, descricao, modelo, quantidade, stock, precoUn, preco, desconto, estado, disponivel)
-    VALUES (p_nome, p_descricao, p_modelo, 0, 0, 0.0, 0.0, p_desconto, 'Ativo', true);
+    INSERT INTO equipamentos (nome, descricao, modelo, quantidade, stock, precoUn, preco, estado, disponivel)
+    VALUES (p_nome, p_descricao, p_modelo, 0, 0, 0.0, 0.0, 'Ativo', true);
 END;
 $$;
 
@@ -841,6 +840,59 @@ BEGIN
     COMMIT;
 END;
 $$;
+
+
+
+
+
+-- Finalizar compras / Criar recibo
+CREATE OR REPLACE PROCEDURE public.finalizarCompra_criarRecibo(
+    IN p_user_id INTEGER,
+    IN p_id_carrinho INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_total_pago MONEY;
+    v_dados_equipamentos JSONB;
+BEGIN
+    -- Alterar o estado de pagamento do carrinho para True
+    UPDATE carrinho
+    SET estado_pagamento = true
+    WHERE id_carrinho = p_id_carrinho;
+
+    -- Calcular o total pago
+    SELECT SUM(equipamentos.preco * quantidade) INTO v_total_pago
+    FROM carrinho_produtos
+    JOIN equipamentos ON carrinho_produtos.id_equipamentos = equipamentos.id_equipamentos
+    WHERE id_carrinho = p_id_carrinho;
+
+    -- Criar o JSON com os equipamentos pagos e a quantidade
+    SELECT jsonb_agg(jsonb_build_object(
+                   'nome_equipamento', equipamentos.nome,
+                   'quantidade', carrinho_produtos.quantidade_equip,
+                   'preco_unitario', v_total_pago,
+                   'total_item', equipamentos.preco * carrinho_produtos.quantidade_equip
+               ))
+    INTO v_dados_equipamentos
+    FROM carrinho_produtos
+    JOIN equipamentos ON carrinho_produtos.id_equipamentos = equipamentos.id_equipamentos
+    WHERE id_carrinho = p_id_carrinho;
+
+    -- Inserir o recibo na tabela recibos
+    INSERT INTO recibos (id_carrinho, user_id, dados_json)
+    VALUES (p_id_carrinho, p_user_id, jsonb_build_object(
+                   'equipamentos_pagos', v_dados_equipamentos,
+                   'total_pago', v_total_pago
+               ));
+
+    -- Comitar a transação
+    COMMIT;
+END;
+$$;
+
+
+
 
 
 

@@ -237,3 +237,43 @@ END;
 $$;
 
 
+
+
+CREATE OR REPLACE FUNCTION listar_compras_user(
+    p_user_id INTEGER
+)
+RETURNS TABLE (
+    id_carrinho INTEGER,
+    total_pago MONEY
+)
+AS $$
+BEGIN
+    -- Retornar os carrinhos do user com estado de pagamento verdadeiro
+    RETURN QUERY
+    SELECT carrinho.id_carrinho, carrinho.preço_total
+    FROM carrinho
+    WHERE user_id = p_user_id AND estado_pagamento = TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+
+
+-- Listar vendas
+CREATE OR REPLACE FUNCTION listar_vendas()
+RETURNS TABLE (
+    id_carrinho INTEGER,
+    nome_usuario VARCHAR,
+    total_pago MONEY
+)
+AS $$
+BEGIN
+    -- Retornar todas as compras com estado de pagamento verdadeiro e o nome de cada user associado
+    RETURN QUERY
+    SELECT carrinho.id_carrinho, users.nome, carrinho.preço_total
+    FROM carrinho
+    INNER JOIN users ON carrinho.user_id = users.user_id
+    WHERE carrinho.estado_pagamento = TRUE;
+END;
+$$ LANGUAGE plpgsql;

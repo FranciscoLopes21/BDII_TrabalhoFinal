@@ -43,7 +43,10 @@ class formularioAdiconarMaoObra(forms.Form):
 
 class formularioAdicionarComponentes(forms.Form):
     nome = forms.CharField(max_length=100, required=False)
-    referencia = forms.CharField(max_length=100, required=False)
+    referencia = forms.CharField(
+        max_length=100, 
+        required=False,widget=forms.NumberInput(attrs={'type': 'number'}),
+        )
     quant = forms.CharField(
         max_length=5,
         min_length=1,
@@ -94,18 +97,6 @@ class formualarioRegistoEquipamentos(forms.Form):
     nome = forms.CharField(max_length=100, required=False)
     descricao = forms.CharField(max_length=100, required=False)
     modelo = forms.CharField(max_length=100, required=False)#choices=tiposProdutos,
-    desconto = forms.CharField(
-        max_length=3,
-        min_length=1,
-        widget=forms.NumberInput(attrs={'type': 'number'}),
-        required=False,
-        error_messages={
-            'max_length': 'A quantidade deve ter no máximo 3 dígitos.',
-            'min_length': 'A quantidade deve ter no minimo 1 dígito.',
-            'invalid': 'Por favor, insira um número válido.',
-        },
-        label='Desconto %'
-    )
 
 class formualarioAdicionarPreco(forms.Form):
     preco = forms.DecimalField(
