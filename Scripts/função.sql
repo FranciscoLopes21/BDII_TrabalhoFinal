@@ -249,17 +249,11 @@ $$;
 
 
 
-<<<<<<< Updated upstream
-
-CREATE OR REPLACE FUNCTION listar_compras_user(
-    p_user_id INTEGER
-=======
 -- Listar compras user
 CREATE OR REPLACE FUNCTION listar_compras_user(
     p_user_id INTEGER,
     p_id_carrinho INTEGER,
     p_order_by VARCHAR (20)
->>>>>>> Stashed changes
 )
 RETURNS TABLE (
     id_carrinho INTEGER,
@@ -267,13 +261,6 @@ RETURNS TABLE (
 )
 AS $$
 BEGIN
-<<<<<<< Updated upstream
-    -- Retornar os carrinhos do user com estado de pagamento verdadeiro
-    RETURN QUERY
-    SELECT carrinho.id_carrinho, carrinho.preço_total
-    FROM carrinho
-    WHERE user_id = p_user_id AND estado_pagamento = TRUE;
-=======
     -- Retornar todas as compras do usuário com estado de pagamento verdadeiro
     IF p_order_by = 'preco_asc' THEN
         RETURN QUERY 
@@ -302,7 +289,6 @@ BEGIN
             AND (p_id_carrinho IS NULL OR carrinho.id_carrinho = p_id_carrinho)
             AND carrinho.estado_pagamento = TRUE;
     END IF;
->>>>>>> Stashed changes
 END;
 $$ LANGUAGE plpgsql;
 
@@ -310,34 +296,17 @@ $$ LANGUAGE plpgsql;
 
 
 
-<<<<<<< Updated upstream
--- Listar vendas
-CREATE OR REPLACE FUNCTION listar_vendas()
-=======
 
 -- Listar vendas
 CREATE OR REPLACE FUNCTION public.listar_vendas(
     p_id_carrinho INTEGER,
     p_order_by VARCHAR(20)
 )
->>>>>>> Stashed changes
 RETURNS TABLE (
     id_carrinho INTEGER,
     nome_usuario VARCHAR,
     total_pago MONEY
 )
-<<<<<<< Updated upstream
-AS $$
-BEGIN
-    -- Retornar todas as compras com estado de pagamento verdadeiro e o nome de cada user associado
-    RETURN QUERY
-    SELECT carrinho.id_carrinho, users.nome, carrinho.preço_total
-    FROM carrinho
-    INNER JOIN users ON carrinho.user_id = users.user_id
-    WHERE carrinho.estado_pagamento = TRUE;
-END;
-$$ LANGUAGE plpgsql;
-=======
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -429,4 +398,3 @@ END;
 $$ LANGUAGE PLPGSQL;
 
 
->>>>>>> Stashed changes

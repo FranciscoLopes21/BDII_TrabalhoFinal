@@ -132,11 +132,7 @@
             <td>{{result.9}}</td>
             <td>
                 {% if result.8 == 'Ativo' %} 
-<<<<<<< Updated upstream
-                    <a href="{{result.1}}/"><input class="button" type="submit" value="Editar"/></a>
-=======
                     <a href="{% url 'editar_equipamento' id_equipamento=result.0 %}"><input class="button" type="submit" value="Editar"/></a>
->>>>>>> Stashed changes
                     <a href="{% url 'adicionarPreco' id_equipamento=result.0 %}"><input class="button" type="submit" value="Preço"/></a>
                     <a href="{% url 'associarCompEquip' id=result.0 %}"><input class="button" type="submit" value="Associar Componentes"/></a>
                     <a href="{% url 'criarOrdemProducao' id_equipamento=result.0 %}"><input class="button" type="submit" value="Produzir"/></a>

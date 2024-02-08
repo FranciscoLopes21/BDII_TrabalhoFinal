@@ -1463,16 +1463,6 @@ def finalizarCompra(request, id_carrinho):
 @login_required(login_url='/login/') 
 def listaCompras(request):
     id_user = request.session.get('user_id', None)
-<<<<<<< Updated upstream
-
-    # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM listar_compras_user(%s)",[id_user])
-        compras = cursor.fetchall()
-        
-    # Passar os dados para o template
-    return render(request, 'listaCompras.html', {'compras': compras})
-=======
     id_carrinho_filtro = request.GET.get('id_carrinho')
     order_by = request.GET.get('order_by')
 
@@ -1490,7 +1480,6 @@ def listaCompras(request):
 
 
 
->>>>>>> Stashed changes
 
 @login_required(login_url='/login/') 
 def download_jsonRecibo(request, id_carrinho):
@@ -1523,16 +1512,6 @@ def listaVendas(request):
     if tipo_user != 'admin':
         # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
         return redirect('login')
-<<<<<<< Updated upstream
-
-    # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM listar_vendas()")
-        vendas = cursor.fetchall()
-        
-    # Passar os dados para o template
-    return render(request, 'listaVendas.html', {'vendas': vendas})
-=======
     
     id_carrinho_filtro = request.GET.get('id_carrinho')
     order_by = request.GET.get('order_by')
@@ -1547,5 +1526,4 @@ def listaVendas(request):
         
     # Passar os dados para o template
     return render(request, 'listaVendas.html', {'vendas': vendas, 'id_carrinho_filtro':id_carrinho_filtro, 'order_by':order_by})
->>>>>>> Stashed changes
 
