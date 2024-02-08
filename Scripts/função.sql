@@ -188,16 +188,27 @@ $$ LANGUAGE PLPGSQL;
 
 
 -- LISTAR CLIENTES --
-CREATE OR REPLACE FUNCTION listar_clientes()
-RETURNS SETOF public.users
-AS $$
-BEGIN
-  RETURN QUERY SELECT * FROM public.users WHERE tipo_user = 'client';
-END;
-$$ LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION public.listar_clientes(
+	nome_cliente text)
+    RETURNS SETOF users 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
 
--- Grant necessary permissions
-GRANT EXECUTE ON FUNCTION listar_clientes() TO PUBLIC;
+AS $BODY$
+BEGIN
+  RETURN QUERY SELECT * FROM public.users WHERE tipo_user = 'client' AND nome ILIKE '%' || nome_cliente || '%';
+END;
+$BODY$;
+
+ALTER FUNCTION public.listar_clientes(text)
+    OWNER TO postgres;
+
+GRANT EXECUTE ON FUNCTION public.listar_clientes(text) TO PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.listar_clientes(text) TO postgres;
+
 
 
 -- Lista carrinho
@@ -238,9 +249,17 @@ $$;
 
 
 
+<<<<<<< Updated upstream
 
 CREATE OR REPLACE FUNCTION listar_compras_user(
     p_user_id INTEGER
+=======
+-- Listar compras user
+CREATE OR REPLACE FUNCTION listar_compras_user(
+    p_user_id INTEGER,
+    p_id_carrinho INTEGER,
+    p_order_by VARCHAR (20)
+>>>>>>> Stashed changes
 )
 RETURNS TABLE (
     id_carrinho INTEGER,
@@ -248,11 +267,42 @@ RETURNS TABLE (
 )
 AS $$
 BEGIN
+<<<<<<< Updated upstream
     -- Retornar os carrinhos do user com estado de pagamento verdadeiro
     RETURN QUERY
     SELECT carrinho.id_carrinho, carrinho.preço_total
     FROM carrinho
     WHERE user_id = p_user_id AND estado_pagamento = TRUE;
+=======
+    -- Retornar todas as compras do usuário com estado de pagamento verdadeiro
+    IF p_order_by = 'preco_asc' THEN
+        RETURN QUERY 
+        SELECT carrinho.id_carrinho, carrinho.preço_total
+        FROM carrinho
+        INNER JOIN users ON carrinho.user_id = users.user_id
+        WHERE carrinho.user_id = p_user_id 
+            AND (p_id_carrinho IS NULL OR carrinho.id_carrinho = p_id_carrinho)
+            AND carrinho.estado_pagamento = TRUE
+        ORDER BY carrinho.preço_total ASC;
+    ELSIF p_order_by = 'preco_desc' THEN
+        RETURN QUERY 
+        SELECT carrinho.id_carrinho, carrinho.preço_total
+        FROM carrinho
+        INNER JOIN users ON carrinho.user_id = users.user_id
+        WHERE carrinho.user_id = p_user_id 
+            AND (p_id_carrinho IS NULL OR carrinho.id_carrinho = p_id_carrinho)
+            AND carrinho.estado_pagamento = TRUE
+        ORDER BY carrinho.preço_total DESC;
+    ELSE
+        RETURN QUERY 
+        SELECT carrinho.id_carrinho, carrinho.preço_total
+        FROM carrinho
+        INNER JOIN users ON carrinho.user_id = users.user_id
+        WHERE carrinho.user_id = p_user_id 
+            AND (p_id_carrinho IS NULL OR carrinho.id_carrinho = p_id_carrinho)
+            AND carrinho.estado_pagamento = TRUE;
+    END IF;
+>>>>>>> Stashed changes
 END;
 $$ LANGUAGE plpgsql;
 
@@ -260,13 +310,23 @@ $$ LANGUAGE plpgsql;
 
 
 
+<<<<<<< Updated upstream
 -- Listar vendas
 CREATE OR REPLACE FUNCTION listar_vendas()
+=======
+
+-- Listar vendas
+CREATE OR REPLACE FUNCTION public.listar_vendas(
+    p_id_carrinho INTEGER,
+    p_order_by VARCHAR(20)
+)
+>>>>>>> Stashed changes
 RETURNS TABLE (
     id_carrinho INTEGER,
     nome_usuario VARCHAR,
     total_pago MONEY
 )
+<<<<<<< Updated upstream
 AS $$
 BEGIN
     -- Retornar todas as compras com estado de pagamento verdadeiro e o nome de cada user associado
@@ -277,3 +337,96 @@ BEGIN
     WHERE carrinho.estado_pagamento = TRUE;
 END;
 $$ LANGUAGE plpgsql;
+=======
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Retornar todas as compras com estado de pagamento verdadeiro e o nome de cada usuário associado
+    IF p_order_by = 'preco_asc' THEN
+        RETURN QUERY 
+        SELECT carrinho.id_carrinho, users.nome, carrinho.preço_total
+        FROM carrinho
+        INNER JOIN users ON carrinho.user_id = users.user_id
+        WHERE (p_id_carrinho IS NULL OR carrinho.id_carrinho = p_id_carrinho)
+            AND carrinho.estado_pagamento = TRUE
+        ORDER BY carrinho.preço_total ASC;
+    ELSIF p_order_by = 'preco_desc' THEN
+        RETURN QUERY 
+        SELECT carrinho.id_carrinho, users.nome, carrinho.preço_total
+        FROM carrinho
+        INNER JOIN users ON carrinho.user_id = users.user_id
+        WHERE (p_id_carrinho IS NULL OR carrinho.id_carrinho = p_id_carrinho)
+            AND carrinho.estado_pagamento = TRUE
+        ORDER BY carrinho.preço_total DESC;
+    ELSE
+        RETURN QUERY 
+        SELECT carrinho.id_carrinho, users.nome, carrinho.preço_total
+        FROM carrinho
+        INNER JOIN users ON carrinho.user_id = users.user_id
+        WHERE (p_id_carrinho IS NULL OR carrinho.id_carrinho = p_id_carrinho)
+            AND carrinho.estado_pagamento = TRUE;
+    END IF;
+END;
+$$;
+
+
+
+--Listar Equipamentos
+CREATE OR REPLACE FUNCTION listar_equipamentos(
+    nome_filter TEXT,
+    estado_filter TEXT,
+    disponibilidade_filter BOOLEAN
+)
+RETURNS SETOF equipamentos
+AS $$
+BEGIN
+    IF nome_filter != '' AND estado_filter != '' AND disponibilidade_filter IS NOT NULL THEN
+        RETURN QUERY
+        SELECT *
+        FROM equipamentos
+        WHERE nome ILIKE '%' || nome_filter || '%'
+          AND estado = estado_filter
+          AND disponivel = disponibilidade_filter;
+    ELSIF nome_filter != '' AND estado_filter != '' THEN
+        RETURN QUERY
+        SELECT *
+        FROM equipamentos
+        WHERE nome ILIKE '%' || nome_filter || '%'
+          AND estado = estado_filter;
+    ELSIF nome_filter != '' AND disponibilidade_filter IS NOT NULL THEN
+        RETURN QUERY
+        SELECT *
+        FROM equipamentos
+        WHERE nome ILIKE '%' || nome_filter || '%'
+          AND disponivel = disponibilidade_filter;
+    ELSIF estado_filter != '' AND disponibilidade_filter IS NOT NULL THEN
+        RETURN QUERY
+        SELECT *
+        FROM equipamentos
+        WHERE estado = estado_filter
+          AND disponibilidade = disponibilidade_filter;
+    ELSIF nome_filter != '' THEN
+        RETURN QUERY
+        SELECT *
+        FROM equipamentos
+        WHERE nome ILIKE '%' || nome_filter || '%';
+    ELSIF estado_filter != '' THEN
+        RETURN QUERY
+        SELECT *
+        FROM equipamentos
+        WHERE estado = estado_filter;
+    ELSIF disponibilidade_filter IS NOT NULL THEN
+        RETURN QUERY
+        SELECT *
+        FROM equipamentos
+        WHERE disponivel = disponibilidade_filter;
+    ELSE
+        RETURN QUERY
+        SELECT *
+        FROM equipamentos;
+    END IF;
+END;
+$$ LANGUAGE PLPGSQL;
+
+
+>>>>>>> Stashed changes

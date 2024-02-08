@@ -93,8 +93,8 @@ def registarAdmin(request):
             if user is not None:
                 login(request, user)
 
-            # Redirecionar para a página inicial room
-            return redirect('dashBoard')
+                # Redirecionar para a página inicial room
+                return redirect('dashBoard')
         
     else:
         form = formularioRegisto()
@@ -191,9 +191,17 @@ def dashBoardAdmin(request):
     # Verificar se existem componentes por validar
     tem_encomedas = bool(encomedas)
 
+    # Consulta ao banco de dados para obter as componentes por validar
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM equipamentos_com_estoque_baixo")
+        equipamentos = cursor.fetchall()
+
+    # Verificar se existem componentes por validar
+    tem_equipamentos = bool(equipamentos)
+
     # Passar os dados para o template
     return render(request, 'dashboardAdmin.html', {'tem_componentes_em_falta': tem_componentes_em_falta, 'componentes_em_falta': componentes_em_falta, 
-                                                   'tem_encomedas':tem_encomedas, 'encomedas':encomedas})
+                                                   'tem_encomedas':tem_encomedas, 'encomedas':encomedas, 'tem_equipamentos': tem_equipamentos, 'equipamentos':equipamentos})
     
 
 
@@ -253,7 +261,7 @@ def adicionarFornecedor(request):
                     with connection.cursor() as cursor:
                         # Exemplo de inserção
                         cursor.execute(
-                            "INSERT INTO Fornecedores (nome, morada, contacto, email) VALUES (%s, %s, %s, %s)",
+                            "CALL  registrar_fornecedor(%s, %s, %s, %s)",
                             [nome, morada, contacto,email]
                         )
 
@@ -831,16 +839,23 @@ def listarEquipamentos(request):
     if tipo_user != 'admin':
         # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
         return redirect('login')
+    
+    nome_filtro = request.GET.get('nome')
+    estado_filter = request.GET.get('status', '')  # Obtém o valor do filtro de estado
+    disponibilidade_filter = request.GET.get('disponibilidade', '')  # Obtém o valor do filtro de estado
+
+    if not disponibilidade_filter:
+        disponibilidade_filter = None
 
     # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
     with connection.cursor() as cursor:
         cursor.execute(
-            "SELECT * FROM equipamentos"
+            "SELECT * FROM listar_equipamentos(%s,%s,%s)", [nome_filtro,estado_filter,disponibilidade_filter]
         )
         equipamentos = cursor.fetchall()
         
     # Passar os dados para o template
-    return render(request, 'listaEquipamentos.html', {'equipamentos': equipamentos})
+    return render(request, 'listaEquipamentos.html', {'equipamentos': equipamentos, 'nome_filtro':nome_filtro, 'estado_filter':estado_filter, 'disponibilidade_filter':disponibilidade_filter})
 
 
 # regista um novo utilizador
@@ -881,12 +896,67 @@ def RegistarEquipamentos(request):
     return render(request, 'AdicionarEquipamentos.html', {'form': form})
 
 
+# editar fornecedor 
+@login_required(login_url='/login/') 
+def editar_equipamento(request, id_equipamento):
+    # Verificar se o usuário é do tipo "admin" usando a informação armazenada na sessão
+    tipo_user = request.session.get('tipo_user', None)
+
+    if tipo_user != 'admin':
+        # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
+        return redirect('login')
+
+    elif  tipo_user == 'admin':
+
+        # Buscar o fornecedor com base no ID fornecido
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT * FROM equipamentos WHERE id_equipamentos = %s', [id_equipamento])
+            fornecedor_data = cursor.fetchone()
+
+        if request.method == 'POST':
+            form = formualarioRegistoEquipamentos(request.POST)
+            if form.is_valid():
+                nome = form.cleaned_data["nome"]
+                descricao = form.cleaned_data["descricao"]
+                modelo = form.cleaned_data["modelo"]
+
+                # Lógica para desassociar o componente
+                with connection.cursor() as cursor:
+                    cursor.execute('CALL editar_equipamento(%s, %s, %s, %s)', [
+                        id_equipamento, nome, descricao, modelo]
+                        )
+                    
+                    EditarEquipamentoMongo(id_equipamento,nome, descricao, modelo)
+                    
+                messages.success(request, 'Equipamento Editado.')
+
+                # Passar os dados para o template
+                return redirect('listarEquipamentos')
+
+        else:
+            form = formualarioRegistoEquipamentos(initial={
+            'nome': fornecedor_data[1],
+            'descricao': fornecedor_data[2],
+            'modelo': fornecedor_data[3]
+        })
+
+    return render(request, 'AdicionarEquipamentos.html', {'form': form})
+
+
 # regista Equipamneto Mongo
 def RegistarEquipamentosMongo(id_equipamento, nome, descricao, modelo):
     mongo_db = conexaomongo
     colecaoEquipamentos = mongo_db["Equipamentos"]
     documento = {"idEquipamento": id_equipamento, "nome": nome, "descricao": descricao, "modelo": modelo, "comp": [], "stock": 0, "preco": 0, "estado": 'Ativo', "disponivel": False}
     colecaoEquipamentos.insert_one(documento)
+
+# eidtar Equipamento Mongo
+def EditarEquipamentoMongo(id_equipamento, nome, descricao, modelo):
+    mongo_db = conexaomongo
+    colecaoEquipamentos = mongo_db["Equipamentos"]
+    filtro = {"idEquipamento": id_equipamento}
+    novo_valor = {"$set": {"nome": nome, "descricao": descricao, "modelo": modelo}}
+    colecaoEquipamentos.update_one(filtro, novo_valor)
 
 
 
@@ -1393,6 +1463,7 @@ def finalizarCompra(request, id_carrinho):
 @login_required(login_url='/login/') 
 def listaCompras(request):
     id_user = request.session.get('user_id', None)
+<<<<<<< Updated upstream
 
     # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
     with connection.cursor() as cursor:
@@ -1401,6 +1472,25 @@ def listaCompras(request):
         
     # Passar os dados para o template
     return render(request, 'listaCompras.html', {'compras': compras})
+=======
+    id_carrinho_filtro = request.GET.get('id_carrinho')
+    order_by = request.GET.get('order_by')
+
+    # Verificar se id_encomenda_filter não está vazio antes de converter para inteiro
+    id_carrinho_filtro = int(id_carrinho_filtro) if id_carrinho_filtro else None
+
+    # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM listar_compras_user(%s, %s, %s)",[id_user, id_carrinho_filtro, order_by])
+        compras = cursor.fetchall()
+        
+    # Passar os dados para o template
+    return render(request, 'listaCompras.html', {'compras': compras, 'id_carrinho_filtro':id_carrinho_filtro, 'order_by':order_by})
+
+
+
+
+>>>>>>> Stashed changes
 
 @login_required(login_url='/login/') 
 def download_jsonRecibo(request, id_carrinho):
@@ -1433,6 +1523,7 @@ def listaVendas(request):
     if tipo_user != 'admin':
         # Se não for um admin, redirecione para uma página de acesso negado ou outra página desejada
         return redirect('login')
+<<<<<<< Updated upstream
 
     # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
     with connection.cursor() as cursor:
@@ -1441,4 +1532,20 @@ def listaVendas(request):
         
     # Passar os dados para o template
     return render(request, 'listaVendas.html', {'vendas': vendas})
+=======
+    
+    id_carrinho_filtro = request.GET.get('id_carrinho')
+    order_by = request.GET.get('order_by')
+
+    # Verificar se id_encomenda_filter não está vazio antes de converter para inteiro
+    id_carrinho_filtro = int(id_carrinho_filtro) if id_carrinho_filtro else None
+
+    # Consulta ao banco de dados para obter mão de obra com base no filtro de nome e ordenação
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM listar_vendas(%s, %s)", [id_carrinho_filtro, order_by])
+        vendas = cursor.fetchall()
+        
+    # Passar os dados para o template
+    return render(request, 'listaVendas.html', {'vendas': vendas, 'id_carrinho_filtro':id_carrinho_filtro, 'order_by':order_by})
+>>>>>>> Stashed changes
 

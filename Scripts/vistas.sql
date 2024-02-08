@@ -46,3 +46,9 @@ WHERE
     e.estado = 'Pendente';
 
 
+
+-- Mostrar equipamentos com stock abaixo de 3
+CREATE OR REPLACE VIEW equipamentos_com_estoque_baixo AS
+SELECT *
+FROM equipamentos
+WHERE stock < 3;

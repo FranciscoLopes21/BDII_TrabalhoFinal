@@ -67,7 +67,7 @@
         
         <div style="display: flex; justify-content: space-between; align-items: center;">
 
-            <form method="GET" action="{% url 'listarMaoDeObra' %}" style="margin-right: auto;">
+            <form method="GET" action="{% url 'listarEquipamentos' %}" style="margin-right: auto;">
                 <label for="nome">Filtrar por Nome:</label>
                 <input type="text" class="form-control" name="nome" id="nome" value="{{ request.GET.nome }}">
                 <input class="button" type="submit" value="Filtrar" />
@@ -78,6 +78,21 @@
             </a>
         
         </div>
+        <br>
+            <br>
+            <div>
+                <a href="{% url 'listarEquipamentos' %}" class="button" style="text-decoration: none; margin-right: 10px;">
+                    <i class="fa-solid fa-filter-circle-xmark"></i>
+                </a>
+                <a href="{% url 'listarEquipamentos' %}?status=Ativo" class="button" style="text-decoration: none; margin-right: 10px;">Ativos
+                </a>
+                <a href="{% url 'listarEquipamentos' %}?status=Inativo" class="button" style="text-decoration: none; margin-right: 10px;">Inativos
+                </a>
+                <a href="{% url 'listarEquipamentos' %}?disponibilidade=true" class="button" style="text-decoration: none; margin-right: 10px;">Disponivel
+                </a>
+                <a href="{% url 'listarEquipamentos' %}?disponibilidade=false" class="button" style="text-decoration: none;">Indisponivel
+                </a>
+            </div>
 
         <br>
         <br>
@@ -117,7 +132,11 @@
             <td>{{result.9}}</td>
             <td>
                 {% if result.8 == 'Ativo' %} 
+<<<<<<< Updated upstream
                     <a href="{{result.1}}/"><input class="button" type="submit" value="Editar"/></a>
+=======
+                    <a href="{% url 'editar_equipamento' id_equipamento=result.0 %}"><input class="button" type="submit" value="Editar"/></a>
+>>>>>>> Stashed changes
                     <a href="{% url 'adicionarPreco' id_equipamento=result.0 %}"><input class="button" type="submit" value="Preço"/></a>
                     <a href="{% url 'associarCompEquip' id=result.0 %}"><input class="button" type="submit" value="Associar Componentes"/></a>
                     <a href="{% url 'criarOrdemProducao' id_equipamento=result.0 %}"><input class="button" type="submit" value="Produzir"/></a>

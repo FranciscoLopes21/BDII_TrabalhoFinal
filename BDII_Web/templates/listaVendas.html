@@ -69,9 +69,15 @@
         <h2>Todas as Vendas</h2>
         <br> 
         <div class="filter-form">
+<<<<<<< Updated upstream
             <form method="GET" action="{% url 'listarEncomendas' %}">
                 <label for="guia">Filtrar por número de guia:</label>
                 <input type="text" class="form-control" name="id_encomenda" id="guia" value="{{ request.GET.id_encomenda }}">
+=======
+            <form method="GET" action="{% url 'listaVendas' %}">
+                <label for="guia">Filtrar por número venda:</label>
+                <input type="number" class="form-control" name="id_carrinho" id="guia" value="{{ request.GET.id_carrinho }}">
+>>>>>>> Stashed changes
                 <input class="button" type="submit" value="Filtrar" />
             </form>
         </div>
@@ -81,6 +87,15 @@
             <a href="{% url 'listaVendas' %}" class="button" style="text-decoration: none; margin-right: 10px;">
                 <i class="fa-solid fa-filter-circle-xmark"></i>
             </a>
+<<<<<<< Updated upstream
+=======
+            <a href="{% url 'listaVendas' %}?order_by=preco_asc" class="button" style="text-decoration: none; margin-right: 10px;">
+                <i class="fa-solid fa-arrow-up-1-9"></i>
+            </a>
+            <a href="{% url 'listaVendas' %}?order_by=preco_desc" class="button" style="text-decoration: none;">
+                <i class="fa-solid fa-arrow-up-9-1"></i>
+            </a>
+>>>>>>> Stashed changes
         </div>
     </div>
     <!-- Adicione este trecho de código no início do bloco "content" -->

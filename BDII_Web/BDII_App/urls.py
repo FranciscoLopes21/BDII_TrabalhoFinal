@@ -43,6 +43,7 @@ urlpatterns = [
 
     path('listarEquipamentos/', views.listarEquipamentos, name='listarEquipamentos'),
     path('RegistarEquipamentos/', views.RegistarEquipamentos, name="RegistarEquipamentos"),
+    path('editar_equipamento/<int:id_equipamento>/', views.editar_equipamento, name='editar_equipamento'),
     path('associarCompEquip/<int:id>/', views.associarCompEquip, name="associarCompEquip"),
     path('desassociarComponente/<int:id_equipamento>/<int:id_componente>/', views.desassociarComponente, name='desassociarComponente'),
     path('desativarEquipamento/<int:id_equipamento>/', views.desativarEquipamento, name="desativarEquipamento"),

@@ -47,7 +47,7 @@
 <div class="box">
     <br>
     <h2>Componentes em falta</h2>
-    {% if componentes_em_falta %}
+    {% if tem_componentes_em_falta %}
         <br>
         <table>
             <tr>
@@ -81,7 +81,7 @@
     {% endif %}
     <br>
     <h2>Encomendas Pendentes</h2>
-    {% if encomedas %}
+    {% if tem_encomedas %}
         <br>
         <table>
             <tr>
@@ -112,6 +112,44 @@
         </table>
     {% else %}
         <h2 class="text">Não existem encomendas</h2>
+    {% endif %}
+    <br>
+    <h2>Equipamentos com stock baixo</h2>
+    {% if tem_equipamentos %}
+        <br>
+        <table>
+            <tr>
+                <th>Id</th> 
+                <th>Nome</th> 
+                <th>Descrição</th>
+                <th>Modelo</th>
+                <th>N comp</th>
+                <th>Stock</th>
+                <th>Preço Un</th>
+                <th>Preço</th>
+                <th>Estado</th>
+                <th>Disponivel</th>
+            </tr>
+            {% for result in equipamentos %}
+            <tr>
+                <td>{{result.0}}</td>
+                <td>{{result.1}}</td>
+                <td>{{result.2}}</td>
+                <td>{{result.3}}</td>
+                <td>{{result.4}}</td>
+                <td>{{result.5}}</td>
+                <td>{{result.6}}</td>
+                <td>{{result.7}}</td>
+                <td>{{result.8}}</td>
+                <td>{{result.9}}</td>
+                <td>
+                    <a href="{% url 'criarOrdemProducao' id_equipamento=result.0 %}"><input class="button" type="submit" value="Produzir"/></a>
+                </td>
+            </tr> 
+            {% endfor %}
+        </table>
+    {% else %}
+        <h2 class="text">Não existem equipamentos com stock inferior a 3</h2>
     {% endif %}
 </div>
 

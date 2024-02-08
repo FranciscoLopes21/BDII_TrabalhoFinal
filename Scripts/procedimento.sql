@@ -76,6 +76,20 @@ ALTER PROCEDURE public.registar_admin(character varying, character varying, date
     OWNER TO postgres;
 
 
+--Procedimento Registar Fornecedor
+CREATE OR REPLACE PROCEDURE registrar_fornecedor(
+    IN p_nome VARCHAR(100),
+    IN p_morada VARCHAR(255),
+    IN p_contacto VARCHAR(20),
+    IN p_email VARCHAR(100)
+)
+LANGUAGE SQL
+AS $$
+INSERT INTO fornecedores (nome, morada, contacto, email, estado)
+VALUES (p_nome, p_morada, p_contacto, p_email, 'Ativo');
+$$;
+
+
 
 -- PROCEDIMENTO Adicionar Equipamentos
 CREATE OR REPLACE PROCEDURE public.adicionar_equipamento(
@@ -714,6 +728,25 @@ BEGIN
     COMMIT;
 END;
 $$;
+
+-- Editar Equipamento
+CREATE OR REPLACE PROCEDURE editar_equipamento(
+    IN p_equipamento_id INTEGER,
+    IN p_nome VARCHAR(100),
+    IN p_descricao TEXT,
+    IN p_modelo VARCHAR(50)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE equipamentos
+    SET nome = p_nome,
+        descricao = p_descricao,
+        modelo = p_modelo
+    WHERE id_equipamentos = p_equipamento_id;
+END;
+$$;
+
 
 
 
