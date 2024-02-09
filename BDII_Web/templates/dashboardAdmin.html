@@ -32,7 +32,7 @@
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
     <a href="{% url 'listarOrdensProducao' %}">
-        <i class="fa-solid fa-hammer"></i>Ordens de Pordução
+        <i class="fa-solid fa-hammer"></i>Ordens de Produção
     </a>
     <a href="{% url 'listarClientes' %}">
         <i class="fa-solid fa-person"></i>Clientes
@@ -92,7 +92,6 @@
                 <th>Un €</th> 
                 <th>Pago</th> 
                 <th>Data encomenda</th> 
-                <th>Estado</th> 
             </tr>
             {% for result in encomedas %}
                 <tr>

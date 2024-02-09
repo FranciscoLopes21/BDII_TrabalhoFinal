@@ -1,123 +1,135 @@
+-- Tabela users
 CREATE TABLE IF NOT EXISTS public.users
 (
-    user_id integer NOT NULL DEFAULT nextval('users_user_id_seq'::regclass),
-    nome character varying COLLATE pg_catalog."default" NOT NULL,
-    apelido character varying COLLATE pg_catalog."default" NOT NULL,
-    data_nascimento date NOT NULL,
-    morada character varying COLLATE pg_catalog."default" NOT NULL,
-    email character varying COLLATE pg_catalog."default" NOT NULL,
-    password character varying COLLATE pg_catalog."default" NOT NULL,
-    tipo_user character varying COLLATE pg_catalog."default" NOT NULL,
-    CONSTRAINT users_pkey PRIMARY KEY (user_id)
+    user_id SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    apelido VARCHAR(255) NOT NULL,
+    data_nascimento DATE NOT NULL,
+    morada VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    tipo_user VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE Fornecedores (
+-- Tabela Fornecedores
+CREATE TABLE IF NOT EXISTS public.fornecedores
+(
     fornecedor_id SERIAL PRIMARY KEY,
-    nome VARCHAR NOT NULL,
-    morada VARCHAR NOT NULL,
+    nome VARCHAR(255) NOT NULL,
+    morada VARCHAR(255) NOT NULL,
     contacto VARCHAR(9) NOT NULL,
-    email VARCHAR NOT NULL,
-    estado VARCHAR(20)
-);
+    email VARCHAR(255) NOT NULL,
+    estado VARCHAR(20) NOT NULL
+);BDII-Grupo11
 
-CREATE TABLE maoObra (
-    maoObra_id SERIAL PRIMARY KEY,
-    nome VARCHAR NOT NULL,
-    preco MONEY  NOT NULL
-    estado character varying(20) NOT NULL
-);
-
-CREATE TABLE componentes (
-	componentes_id SERIAL PRIMARY KEY,
-    nome VARCHAR NOT NULL,
-    referencia VARCHAR NOT NULL,
-    quant INT NOT NULL,
-	stockMinimo INT NOT NULL,
-    fornecedor_id SERIAL REFERENCES fornecedores(fornecedor_id),
-    categoria VARCHAR NOT NULL,
-    preco MONEY  NOT NULL,
+-- Tabela componentes
+CREATE TABLE IF NOT EXISTS public.componentes
+(
+    componentes_id SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    referencia VARCHAR(255) NOT NULL,
+    quant INTEGER NOT NULL,
+    stockminimo INTEGER NOT NULL,
+    fornecedor_id INTEGER REFERENCES public.fornecedores(fornecedor_id),
+    categoria VARCHAR(255) NOT NULL,
+    preco MONEY NOT NULL,
     estado VARCHAR(20) NOT NULL
 );
 
-CREATE TABLE encomendas (
+-- Tabela encomendas
+CREATE TABLE IF NOT EXISTS public.encomendas
+(
     id_encomenda SERIAL PRIMARY KEY,
-    id_componente INTEGER REFERENCES componentes(componentes_id),
-    id_fornecedor INTEGER REFERENCES fornecedores(fornecedor_id),
+    id_componente INTEGER REFERENCES public.componentes(componentes_id),
+    id_fornecedor INTEGER REFERENCES public.fornecedores(fornecedor_id),
     quantidade INTEGER NOT NULL,
     preco_peca MONEY NOT NULL,
     preco_final MONEY NOT NULL,
     data_encomenda DATE NOT NULL,
-	data_entrega DATE,
+    data_entrega DATE,
     estado VARCHAR(20) NOT NULL
 );
 
-CREATE TABLE guias_encomenda (
+-- Tabela guias de encomenda
+CREATE TABLE IF NOT EXISTS public.guias_encomenda
+(
     id_guia SERIAL PRIMARY KEY,
-    id_encomenda INTEGER REFERENCES encomendas(id_encomenda),
+    id_encomenda INTEGER REFERENCES public.encomendas(id_encomenda),
     dados_json JSONB,
-    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    data_criacao TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Tabela Mão de obra
+CREATE TABLE IF NOT EXISTS public.maoobra
+(
+    maoobra_id SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    preco MONEY NOT NULL,
+    estado VARCHAR(20) NOT NULL
+);
+
+-- Tabela equipamentos
 CREATE TABLE IF NOT EXISTS public.equipamentos
 (
-    id_equipamentos integer NOT NULL DEFAULT nextval('equipamentos_id_equipamentos_seq'::regclass),
-    nome character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    descricao text COLLATE pg_catalog."default" NOT NULL,
-    modelo character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    quantidade integer,
-    stock integer,
-    precoun money,
-    preco money,
-    estado character varying(20) COLLATE pg_catalog."default",
-    disponivel boolean,
-    CONSTRAINT equipamentos_pkey PRIMARY KEY (id_equipamentos)
-)
+    id_equipamentos SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    descricao TEXT NOT NULL,
+    modelo VARCHAR(255) NOT NULL,
+    quantidade INTEGER,
+    stock INTEGER,
+    precoun MONEY,
+    preco MONEY,
+    estado VARCHAR(20),
+    disponivel BOOLEAN
+);
 
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.equipamentos
-    OWNER to postgres;
-
-
-CREATE TABLE equipamentos_componentes (
+-- Tabela equipamentos_componentes
+CREATE TABLE IF NOT EXISTS public.equipamentos_componentes
+(
     id SERIAL PRIMARY KEY,
-    id_equipamento INTEGER REFERENCES equipamentos(id_equipamentos),
-    id_componente INTEGER REFERENCES componentes(componentes_id),
+    id_equipamento INTEGER REFERENCES public.equipamentos(id_equipamentos),
+    id_componente INTEGER REFERENCES public.componentes(componentes_id),
     quantidade INTEGER,
     CONSTRAINT unique_association UNIQUE (id_equipamento, id_componente)
 );
 
-
-CREATE TABLE ordemproducao (
+-- Tabela ordem de produção
+CREATE TABLE IF NOT EXISTS public.ordemproducao
+(
     id_ordem_prod SERIAL PRIMARY KEY,
-    id_equipamento INTEGER REFERENCES equipamentos(id_equipamentoS),
-    id_maoObra INTEGER REFERENCES maoobra(maoobra_id),
-    preco_maoObra MONEY, -- Nova coluna para armazenar o preço da mão de obra
-    preco_componentes MONEY, -- Nova coluna para armazenar o preço dos componentes
+    id_equipamento INTEGER REFERENCES public.equipamentos(id_equipamentos),
+    id_maoobra INTEGER REFERENCES public.maoobra(maoobra_id),
     quantidade INTEGER,
+    preco_maoobra MONEY,
+    preco_componentes MONEY,
     preco_total MONEY,
-	estado VARCHAR(20)
+    estado VARCHAR(20)
 );
 
-
-CREATE TABLE carrinho (
+-- Tabela carrinho
+CREATE TABLE IF NOT EXISTS public.carrinho
+(
     id_carrinho SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(user_id),
+    user_id INTEGER REFERENCES public.users(user_id),
     estado_pagamento BOOLEAN DEFAULT false,
     preço_total MONEY
 );
 
-CREATE TABLE carrinho_produtos (
-    id_carrinho SERIAL NOT NULL REFERENCES carrinho(id_carrinho),
-    id_carrinhoequip SERIAL PRIMARY KEY,
+-- Tabela carrinho_produtos: associa equipamentos ao carrino
+CREATE TABLE IF NOT EXISTS public.carrinho_produtos
+(
+    id_carrinho_prod SERIAL PRIMARY KEY,
+    id_carrinho INTEGER REFERENCES public.carrinho(id_carrinho),
     quantidade_equip INTEGER,
-    id_equipamentos SERIAL NOT NULL REFERENCES equipamentos(id_equipamentos)
+    id_equipamentos INTEGER REFERENCES public.equipamentos(id_equipamentos)
 );
 
-CREATE TABLE recibos (
+-- Tabela recibos
+CREATE TABLE IF NOT EXISTS public.recibos
+(
     id_recibo SERIAL PRIMARY KEY,
-    id_carrinho INTEGER REFERENCES carrinho(id_carrinho),
-    user_id INTEGER NOT NULL REFERENCES users(user_id),
+    id_carrinho INTEGER REFERENCES public.carrinho(id_carrinho),
+    user_id INTEGER REFERENCES public.users(user_id),
     dados_json JSONB,
-    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    data_criacao TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

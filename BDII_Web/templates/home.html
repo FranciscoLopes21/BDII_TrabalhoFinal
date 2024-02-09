@@ -64,19 +64,15 @@
             <th>Modelo</th> 
             <th>Stock</th> 
             <th>Preco</th> 
-            <th>Estado</th>
-            <th>Disponivel</th>
             <th>Açoes</th>
         </tr>
-        {% for result in equipamentos%}
+        {% for result in equipamentos %}
         <tr>
             <td>{{result.nome}}</td>
             <td>{{result.descricao}}</td>
             <td>{{result.modelo}}</td>
             <td>{{result.stock}}</td>
             <td>{{result.preco}}</td>
-            <td>{{result.estado}}</td>
-            <td>{{result.disponivel}}</td>
             <td>
                 <a href="{% url 'login' %}"><input class="button" type="submit" value="Comprar"/></a>
             </td>

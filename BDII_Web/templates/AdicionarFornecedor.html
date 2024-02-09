@@ -136,7 +136,7 @@
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
     <a href="{% url 'listarOrdensProducao' %}">
-        <i class="fa-solid fa-hammer"></i>Ordens de Pordução
+        <i class="fa-solid fa-hammer"></i>Ordens de Produção
     </a>
     <a href="{% url 'listarClientes' %}">
         <i class="fa-solid fa-person"></i>Clientes
@@ -151,25 +151,14 @@
 
 <div class="container">
 
-    {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            {{ message }}
-            {% endfor %}
-        </div>
-    {% endif %}
-
     {% if form.errors %}
-    <div class="error">
-        <strong>Ocorreu um erro no formulário:</strong>
-        <ul>
-            {% for field, errors in form.errors.items %}
-                {% for error in errors %}
-                    <li>{{ field }}: {{ error }}</li>
+        <div class="error-messages">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <span style="color: #c3351e;">{{ error }}</span><br>
                 {% endfor %}
             {% endfor %}
-        </ul>
-    </div>
+        </div>
     {% endif %}
 
     <h3>Adicionar Fornecedores</h3>

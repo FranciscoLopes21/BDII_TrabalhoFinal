@@ -17,8 +17,11 @@ from django.http import JsonResponse, HttpResponse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.db import connection, InternalError
-from django.db import IntegrityError
+from django.db import IntegrityError, InternalError 
+
+
+from django.db import connection
+
 
 conexaomongo = pymongo.MongoClient('mongodb+srv://bd2:bd2@bd2.sciijcj.mongodb.net/')["BDII"]
 
@@ -59,7 +62,7 @@ def registarUtilizador(request):
                 login(request, user)
 
             # Redirecionar para a página inicial room
-            return redirect('room')
+            return redirect('listarEquipamentosMongo')
         
     else:
         form = formularioRegisto()
@@ -72,30 +75,34 @@ def registarAdmin(request):
         form = formularioRegisto(request.POST)
         if form.is_valid():
             email = form.cleaned_data["email"]
-            nome = form.cleaned_data["nome"], 
-            apelido = form.cleaned_data["apelido"], 
-            dataNascimento = form.cleaned_data["data_nascimento"],
-            morada = form.cleaned_data["morada"], 
-            passwordEcryp = make_password(form.cleaned_data["password"])
+            nome = form.cleaned_data["nome"]
+            apelido = form.cleaned_data["apelido"]
+            dataNascimento = form.cleaned_data["data_nascimento"]
+            morada = form.cleaned_data["morada"]
+            passwordEncrypted = make_password(form.cleaned_data["password"])
 
             with connection.cursor() as cursor:
                 try:
                     cursor.execute(
-                        "CALL registar_Admin(%s, %s, %s, %s,%s, %s)", [nome, apelido, dataNascimento, morada, email, passwordEcryp]
-                        )
+                        "CALL registar_Admin(%s, %s, %s, %s, %s, %s)",
+                        [nome, apelido, dataNascimento, morada, email, passwordEncrypted]
+                    )
                 except Exception as e:
                     messages.error(request, str(e))
-                    return redirect('registar')
-                
+                    return redirect('registarAdmin')
 
-            # Autenticar o user recém-criado usando o modelo de usuário padrão do Django
-            user = authenticate(request, username=email, password=passwordEcryp)
-            if user is not None:
-                login(request, user)
+            # Autenticar o usuário manualmente após o registro bem-sucedido
+            user = User(username=email, email=email)
+            user.set_password(form.cleaned_data["password"])
+            user.save()
 
-                # Redirecionar para a página inicial room
-                return redirect('dashBoard')
-        
+            # Realizar login manualmente
+            login(request, user)
+
+            # Redirecionar para a página inicial do dashboard
+            return redirect('dashBoardAdmin')
+
+
     else:
         form = formularioRegisto()
 
@@ -261,7 +268,7 @@ def adicionarFornecedor(request):
                     with connection.cursor() as cursor:
                         # Exemplo de inserção
                         cursor.execute(
-                            "CALL  registrar_fornecedor(%s, %s, %s, %s)",
+                            "CALL  inserir_fornecedor(%s, %s, %s, %s)",
                             [nome, morada, contacto,email]
                         )
 
@@ -301,7 +308,7 @@ def editar_fornecedor(request, id_fornecedor):
 
                 # Lógica para desassociar o componente
                 with connection.cursor() as cursor:
-                    cursor.execute('SELECT editar_fornecedor(%s, %s, %s, %s, %s)', [
+                    cursor.execute('CALL editar_fornecedor(%s, %s, %s, %s, %s)', [
                         id_fornecedor, nome, morada, contacto, email]
                         )
                     
@@ -471,12 +478,10 @@ def editar_componentes(request, id_componente):
                 # Lógica para editar o componente
                 with connection.cursor() as cursor:
                     cursor.execute(
-                        'SELECT editar_componente(%s::INTEGER, %s, %s, %s::INTEGER, %s::INTEGER, %s::INTEGER, %s, %s::MONEY)',
+                        'CALL editar_componente(%s::INTEGER, %s, %s, %s::INTEGER, %s::INTEGER, %s::INTEGER, %s, %s::MONEY)',
                         [id_componente, nome, referencia, quant, stockMin, fornecedor_id, categoria, preco]
                     )
-
                 messages.success(request, 'Componente Editado.')
-
                 # Redirecionar para a página de listagem de componentes
                 return redirect('listarComponentes')
 

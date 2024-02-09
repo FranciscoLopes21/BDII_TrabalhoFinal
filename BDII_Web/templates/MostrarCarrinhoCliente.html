@@ -54,7 +54,7 @@
                 {% if forloop.first %}
                     <a href="{% url 'finalizarCompra' id_carrinho=result.0 %}" class="button" style="text-decoration: none;">
                         <i class="fa-solid fa-plus"></i> Finalizar Compra
-                        <td>Total a pagar: {{ result.6 }}</td>
+                        <td>Total a pagar: {{ result.5 }}</td>
                     </a>
                 {% endif %}
             {% endfor %}
@@ -64,18 +64,15 @@
             <tr>
                 <th>Nome</th>
                 <th>Quantidade</th>
-                <th>Preço Un</th>
+                <th>Preço Un €</th>
                 <th>Total</th>
             </tr>
             {% for result in equipamentos %}
                 <tr>
-                    <td>{{result.1}}</td>
                     <td>{{result.2}}</td>
                     <td>{{result.3}}</td>
                     <td>{{result.4}}</td>
                     <td>{{result.5}}</td>
-                    <td>{{result.0}}</td>
-                    <td>{{result.6}}</td>
                     <td>
                         <a href="{% url 'remover_equipamento_carrinho' equipamento_id=result.1 id_carrinho=result.0 %}">
                             <input class="button-outline" type="submit" value="Remover"/>

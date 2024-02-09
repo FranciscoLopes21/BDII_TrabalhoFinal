@@ -30,7 +30,7 @@
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
     <a href="{% url 'listarOrdensProducao' %}">
-        <i class="fa-solid fa-hammer"></i>Ordens de Pordução
+        <i class="fa-solid fa-hammer"></i>Ordens de Produção
     </a>
     <a href="{% url 'listarClientes' %}">
         <i class="fa-solid fa-person"></i>Clientes
@@ -42,7 +42,6 @@
         <i class="fa-solid fa-right-from-bracket"></i>Logout
     </a>
 </div>
-
 <div class="box">
         
     <div class="container">
@@ -78,10 +77,10 @@
     <br>
     <table>
         <tr>
+            <th>ID</th> 
             <th>Nome</th> 
-            <th>Referencia</th> 
-            <th>Nome Fornecedor</th>
-            <th>Categoria</th>
+            <th>Referencia</th>
+            <th>Fornecedor</th>
         </tr>
         {% for result in componentes%}
         <tr>
@@ -103,8 +102,8 @@
     <br>
     <table>
         <tr>
-            <th>Id</th> 
-            <th>Qunatidade</th> 
+            <th>Quantidade</th> 
+            <th>Nome</th> 
         </tr>
         {% for result in componentes_associados%}
         <tr>

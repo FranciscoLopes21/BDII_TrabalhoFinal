@@ -58,26 +58,22 @@
 
     <br>
     <table>
-        {% for result in equipamentos%}
+        
         <tr>
             <th>Nome</th> 
             <th>Descricao</th> 
             <th>Modelo</th> 
             <th>Stock</th> 
             <th>Preco</th> 
-            <th>Estado</th>
-            <th>Disponivel</th>
             <th>Açoes</th>
         </tr>
-        
+            {% for result in equipamentos%}
         <tr>
             <td>{{result.nome}}</td>
             <td>{{result.descricao}}</td>
             <td>{{result.modelo}}</td>
             <td>{{result.stock}}</td>
             <td>{{result.preco}}</td>
-            <td>{{result.estado}}</td>
-            <td>{{result.disponivel}}</td>
             <td>
                 {% if result.stock <= 0 %}
                     Sem stock

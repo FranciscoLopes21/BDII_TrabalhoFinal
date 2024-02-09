@@ -37,7 +37,7 @@
         <i class="fa-solid fa-desktop"></i>Equipamentos
     </a>
     <a href="{% url 'listarOrdensProducao' %}">
-        <i class="fa-solid fa-hammer"></i>Ordens de Pordução
+        <i class="fa-solid fa-hammer"></i>Ordens de Produção
     </a>
     <a href="{% url 'listarClientes' %}">
         <i class="fa-solid fa-person"></i>Clientes
@@ -73,7 +73,7 @@
             <div class="filter-form">
                 <form method="GET" action="{% url 'listarComponentes' %}">
                     <label for="referencia">Filtrar por Referencia:</label>
-                    <input type="number" class="form-control" name="referencia" id="referencia" value="{{ request.GET.referencia }}">
+                    <input type="text" class="form-control" name="referencia" id="referencia" value="{{ request.GET.referencia }}">
                     <input class="button" type="submit" value="Filtrar" />
                 </form>
             </div>
